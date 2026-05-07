@@ -1,8 +1,8 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Download, Smartphone, Star, Trophy, Users, Zap, Monitor, Shield, Crown, Globe, Rocket, ChevronRight, QrCode, ArrowRight, Share, X, Info, CheckCircle } from 'lucide-react';
+import { Download, Smartphone, Star, Trophy, Users, Zap, Monitor, Shield, Crown, Globe, Rocket, ChevronRight, QrCode, ArrowRight, Share, X, Info, CheckCircle, Plus } from 'lucide-react';
 
-/* ========== PWA Install Hook (inline to avoid async import issues) ========== */
+/* ========== PWA Install Hook (self-contained) ========== */
 interface BeforeInstallPromptEvent extends Event {
   prompt(): Promise<void>;
   userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
@@ -10,38 +10,33 @@ interface BeforeInstallPromptEvent extends Event {
 function usePWA() {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [isInstallable, setIsInstallable] = useState(false);
-  const [isInstalled, setIsInstalled] = useState(false);
-  const [isStandalone, setIsStandalone] = useState(false);
 
   useEffect(() => {
-    const standalone = window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone === true;
-    setIsInstalled(standalone);
-    setIsStandalone(standalone);
-
     const handler = (e: Event) => {
       e.preventDefault();
       setDeferredPrompt(e as BeforeInstallPromptEvent);
       setIsInstallable(true);
     };
     window.addEventListener('beforeinstallprompt', handler);
-    window.addEventListener('appinstalled', () => { setIsInstalled(true); setDeferredPrompt(null); setIsInstallable(false); });
+    window.addEventListener('appinstalled', () => { setDeferredPrompt(null); setIsInstallable(false); });
     return () => window.removeEventListener('beforeinstallprompt', handler);
   }, []);
 
   const promptInstall = useCallback(async () => {
-    if (!deferredPrompt) return;
+    if (!deferredPrompt) return false;
     await deferredPrompt.prompt();
     const { outcome } = await deferredPrompt.userChoice;
-    if (outcome === 'accepted') { setIsInstalled(true); setDeferredPrompt(null); setIsInstallable(false); }
+    return outcome === 'accepted';
   }, [deferredPrompt]);
 
-  return { isInstallable, isInstalled, isStandalone, promptInstall };
+  return { isInstallable, promptInstall };
 }
 
 function useOS() {
   const [isIOS, setIsIOS] = useState(false);
   const [isAndroid, setIsAndroid] = useState(false);
   const [isDesktop, setIsDesktop] = useState(true);
+  const [isStandalone, setIsStandalone] = useState(false);
 
   useEffect(() => {
     const ua = navigator.userAgent;
@@ -50,9 +45,10 @@ function useOS() {
     setIsIOS(ios);
     setIsAndroid(android);
     setIsDesktop(!ios && !android && window.innerWidth >= 1024);
+    setIsStandalone(window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone === true);
   }, []);
 
-  return { isIOS, isAndroid, isDesktop, isMobile: isIOS || isAndroid };
+  return { isIOS, isAndroid, isDesktop, isMobile: isIOS || isAndroid, isStandalone };
 }
 
 /* ========== Install Modal ========== */
@@ -135,8 +131,8 @@ export default function LandingPage() {
   const [showQR, setShowQR] = useState(false);
   const [showIOS, setShowIOS] = useState(false);
   const [showDesktop, setShowDesktop] = useState(false);
-  const { isInstallable, isInstalled, isStandalone, promptInstall } = usePWA();
-  const { isIOS, isAndroid, isDesktop } = useOS();
+  const { isInstallable, promptInstall } = usePWA();
+  const { isIOS, isAndroid, isDesktop, isStandalone } = useOS();
 
   const scrollToFeatures = () => {
     document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' });
@@ -144,7 +140,7 @@ export default function LandingPage() {
 
   // Main CTA handler
   const handleInstallOrOpen = () => {
-    if (isStandalone || isInstalled) {
+    if (isStandalone) {
       window.location.href = '/';
       return;
     }
@@ -162,15 +158,14 @@ export default function LandingPage() {
 
   // Nav "Uygulamayı Aç" button handler
   const handleNavOpen = () => {
-    if (isStandalone || isInstalled) {
+    if (isStandalone) {
       window.location.reload();
       return;
     }
-    // Always open app on desktop too
     window.location.href = '/?app=1';
   };
 
-  const showInstallSuccess = isStandalone || isInstalled;
+  const showInstallSuccess = isStandalone;
 
   return (
     <div className="min-h-dvh bg-xena-bg text-white overflow-x-hidden relative">
