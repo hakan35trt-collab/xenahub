@@ -22,12 +22,18 @@ function MarqueeBar() {
 }
 
 function BannerCarousel() {
+  const { banners } = useContent();
+  const active = banners.filter((b: any) => b.active);
+  const [idx, setIdx] = useState(0);
+  React.useEffect(() => { if (active.length <= 1) return; const t = setInterval(() => setIdx((p) => (p + 1) % active.length), 4000); return () => clearInterval(t); }, [active.length]);
+  const b = active[idx] || active[0];
+  if (!b) return null;
   return (
     <div className="relative w-full h-[170px] mx-[-16px] px-4 overflow-hidden">
-      <div className="relative h-full rounded-2xl overflow-hidden bg-gradient-to-br from-[#1a0a3a] via-[#9147ff] to-[#050509]">
+      <div className="relative h-full rounded-2xl overflow-hidden" style={{ background: `linear-gradient(135deg, ${b.gradientStart} 0%, ${b.gradientMid} 50%, ${b.gradientEnd} 100%)` }}>
         <div className="absolute inset-0 p-4 flex flex-col justify-between">
-          <div className="flex items-center justify-between"><span className="text-xs font-extrabold bg-white/15 rounded-full px-3 py-1 border border-white/20">XENAHUB</span><div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-lg font-black">X</div></div>
-          <div><h3 className="text-xl font-black text-white">Premium Yayinci Platformu</h3><p className="text-xs text-white/80 mt-1">Turnuvalar, haberler, market ve topluluk tek uygulamada.</p></div>
+          <div className="flex items-center justify-between"><span className="text-xs font-extrabold bg-white/15 rounded-full px-3 py-1 border border-white/20">{b.tag}</span><div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-lg font-black">{b.initial}</div></div>
+          <div><h3 className="text-xl font-black text-white">{b.title}</h3><p className="text-xs text-white/80 mt-1">{b.subtitle}</p></div>
         </div>
       </div>
     </div>
@@ -65,4 +71,5 @@ export default function HomePage() {
   const { news, events } = useContent();
   return <div className="min-h-dvh bg-xena-bg pb-20"><TopBar /><MarqueeBar /><div className="space-y-5 mt-4 px-4"><section><BannerCarousel /></section><section className="mx-[-16px] px-4"><div className="flex items-center gap-2 mb-3"><div className="w-7 h-7 rounded-lg bg-xena-gold/10 flex items-center justify-center"><Crown size={14} className="text-xena-gold" /></div><h2 className="text-base font-extrabold text-white">One Cikan Yayincilar</h2></div><StreamerCarousel /></section><section><div className="flex items-center gap-2 mb-3"><div className="w-7 h-7 rounded-lg bg-xena-primary/10 flex items-center justify-center"><Calendar size={14} className="text-xena-primary" /></div><h2 className="text-base font-extrabold text-white">Etkinlikler</h2></div><div className="flex gap-3 overflow-x-auto no-scrollbar -mx-4 px-4">{events.filter(e => e.active).slice(0,4).map(e => <EventCard key={e.id} item={e} />)}</div></section><section><div className="flex items-center gap-2 mb-3"><div className="w-7 h-7 rounded-lg bg-xena-info/10 flex items-center justify-center"><FileText size={14} className="text-xena-info" /></div><h2 className="text-base font-extrabold text-white">Haberler</h2></div>{news.filter(n => n.active).slice(0,5).map(n => <NewsCard key={n.id} item={n} />)}</section></div></div>;
 }
+
 
