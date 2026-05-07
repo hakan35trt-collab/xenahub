@@ -205,7 +205,7 @@ export default function LandingPage() {
             <div className="mt-6 flex items-center gap-2 text-sm">
               <span className="inline-flex items-center gap-1.5 text-xena-muted bg-white/[0.03] px-3 py-1.5 rounded-full border border-white/[0.06]">
                 <Info size={13} className="text-xena-primary" />
-                {isAndroid ? 'Chrome "Ana Ekrana Ekle" popup'i gelecek' : isIOS ? 'Safari paylas menusunden ekleyin' : isDesktop ? 'Chrome  un sag ustunde yukle ikonu olacak' : 'Yukleyin ve uygulama gibi calissin'}
+                {isAndroid ? "Chrome 'Ana Ekrana Ekle' popup'i gelecek" : isIOS ? "Safari paylas menusunden ekleyin" : isDesktop ? "Chrome sag ustunde yukle ikonu olacak" : "Yukleyin ve uygulama gibi calissin"}
               </span>
             </div>
           )}
