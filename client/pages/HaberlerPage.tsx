@@ -11,9 +11,9 @@ interface NewsItem {
   content: string;
   date: string;
   category: string;
-  readTime: string;
+  readTime?: string;
   isNew?: boolean;
-  likes: number;
+  likes?: number;
 }
 
 const NEWS: NewsItem[] = [
