@@ -78,9 +78,25 @@ export default function ChatBubble() {
       {/* Fullscreen Image Modal */}
       <AnimatePresence>
         {fullImage && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] bg-black/95 flex items-center justify-center p-4" onClick={() => setFullImage(null)}>
-            <button className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-white hover:bg-white/20" onClick={() => setFullImage(null)}><X size={24} /></button>
-            <img src={fullImage} className="max-w-full max-h-full rounded-lg object-contain" onClick={(e) => e.stopPropagation()} />
+          <motion.div 
+            initial={{ opacity: 0 }} 
+            animate={{ opacity: 1 }} 
+            exit={{ opacity: 0 }} 
+            className="fixed inset-0 z-[100] bg-black flex items-center justify-center" 
+            onClick={() => setFullImage(null)}
+          >
+            <button 
+              className="absolute top-4 right-4 w-12 h-12 rounded-full bg-white/20 flex items-center justify-center text-white hover:bg-white/30 z-[101]" 
+              onClick={() => setFullImage(null)}
+            >
+              <X size={28} />
+            </button>
+            <img 
+              src={fullImage} 
+              className="max-w-none w-auto h-auto max-h-screen max-w-screen object-contain" 
+              style={{ minWidth: 'auto', minHeight: 'auto' }}
+              onClick={(e) => e.stopPropagation()} 
+            />
           </motion.div>
         )}
       </AnimatePresence>

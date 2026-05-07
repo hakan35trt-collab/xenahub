@@ -11,18 +11,25 @@ import { SupportProvider } from './context/SupportContext';
 import { ChatProvider } from './context/ChatContext';
 import { useApp } from './context/AppContext';
 
+// Preload critical pages
+import Layout from './components/Layout';
+import HomePage from './pages/HomePage';
+
 const LandingPage = lazy(() => import('./components/LandingPage'));
-const HomePage = lazy(() => import('./pages/HomePage'));
 const HaberlerPage = lazy(() => import('./pages/HaberlerPage'));
 const EtkinliklerPage = lazy(() => import('./pages/EtkinliklerPage'));
 const MarketPage = lazy(() => import('./pages/MarketPage'));
 const DestekPage = lazy(() => import('./pages/DestekPage'));
 const AdminPage = lazy(() => import('./pages/AdminPage'));
-const Layout = lazy(() => import('./components/Layout'));
 const PWAInstallBanner = lazy(() => import('./components/PWAInstallBanner'));
 const UpdateBanner = lazy(() => import('./components/UpdateBanner'));
 const ChatBubble = lazy(() => import('./components/ChatBubble'));
 const SplashScreen = lazy(() => import('./components/SplashScreen'));
+
+// Simple fallback that doesn't cause flash
+function PageFallback() {
+  return <div className="min-h-dvh bg-xena-bg" />;
+}
 
 function Router() {
   const { isMobile, isStandalone } = useApp();
@@ -39,26 +46,24 @@ function Router() {
 
   if (!showApp) {
     return (
-      <Suspense fallback={<div className="min-h-dvh bg-xena-bg flex items-center justify-center"><div className="animate-pulse text-xena-primary font-bold text-xl">XENAHUB</div></div>}>
+      <Suspense fallback={<PageFallback />}>
         <LandingPage />
       </Suspense>
     );
   }
 
   return (
-    <Suspense fallback={<div className="min-h-dvh bg-xena-bg" />}>
-      <Layout>
-        <Routes>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/haberler" element={<HaberlerPage />} />
-          <Route path="/etkinlikler" element={<EtkinliklerPage />} />
-          <Route path="/market" element={<MarketPage />} />
-          <Route path="/destek" element={<DestekPage />} />
-          <Route path="/admin" element={<AdminPage />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </Layout>
-    </Suspense>
+    <Layout>
+      <Routes>
+        <Route path="/" element={<HomePage />} />
+        <Route path="/haberler" element={<Suspense fallback={<PageFallback />}><HaberlerPage /></Suspense>} />
+        <Route path="/etkinlikler" element={<Suspense fallback={<PageFallback />}><EtkinliklerPage /></Suspense>} />
+        <Route path="/market" element={<Suspense fallback={<PageFallback />}><MarketPage /></Suspense>} />
+        <Route path="/destek" element={<Suspense fallback={<PageFallback />}><DestekPage /></Suspense>} />
+        <Route path="/admin" element={<Suspense fallback={<PageFallback />}><AdminPage /></Suspense>} />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </Layout>
   );
 }
 
