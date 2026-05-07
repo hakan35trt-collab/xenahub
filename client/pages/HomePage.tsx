@@ -18,7 +18,8 @@ function MarqueeBar() {
   const active = ticker.filter((a) => a.active);
   if (!active.length) return null;
   const text = active.map((a) => a.text).join('  ?  ');
-  return <div className="bg-xena-primary/10 border-y border-xena-primary/20 overflow-hidden py-1.5"><div className="marquee-track"><span className="text-xs font-semibold text-xena-accent pl-4">{text} ? {text}</span></div></div>;
+  const repeatedText = `${text}  ?  ${text}  ?  ${text}  ?  ${text}`;
+  return <div className="bg-xena-primary/10 border-y border-xena-primary/20 overflow-hidden py-1.5"><div className="marquee-track"><span className="text-xs font-semibold text-xena-accent">{repeatedText}</span></div></div>;
 }
 
 function BannerCarousel() {
@@ -79,10 +80,31 @@ function NewsCard({ item }: { item: any }) {
 }
 
 function EventCard({ item }: { item: any }) {
-  const [registered, setRegistered] = useState(() => { try { return JSON.parse(localStorage.getItem('xenahub_home_joined') || '[]').includes(item.id); } catch { return false; } });
+  const storageKey = 'xenahub_events_joined';
+  const [registered, setRegistered] = useState(() => { try { return JSON.parse(localStorage.getItem(storageKey) || '[]').includes(item.id); } catch { return false; } });
   const cfg = EVT_CONFIG[item.type] || EVT_CONFIG.special;
   const pct = item.maxParticipants ? Math.min((item.participants / item.maxParticipants) * 100, 100) : null;
-  return <div className="card w-[72vw] shrink-0 p-3.5"><div className="flex items-center gap-2 mb-2"><span className="text-[11px] font-bold px-2 py-1 rounded-full border flex items-center gap-1" style={{ background: `${cfg.color}18`, borderColor: `${cfg.color}35`, color: cfg.color }}>{cfg.icon} {cfg.label}</span>{item.prize && <span className="text-[11px] font-bold text-xena-gold bg-xena-gold/10 px-2 py-1 rounded-full">{item.prize}</span>}</div><h4 className="text-[15px] font-bold text-white line-clamp-1">{item.title}</h4><p className="text-xs text-xena-muted line-clamp-2 mt-1 mb-2">{item.description}</p><div className="space-y-1 mb-3"><div className="flex items-center gap-1.5 text-xs text-xena-muted"><Calendar size={11} className="text-xena-primary" /> {item.date}</div><div className="flex items-center gap-1.5 text-xs text-xena-muted"><span>?</span> {item.time}</div></div>{pct !== null && <div className="space-y-1 mb-3"><div className="flex justify-between text-xs"><span className="text-xena-muted">{item.participants}/{item.maxParticipants}</span><span className="font-bold text-xena-accent">%{Math.round(pct)}</span></div><div className="h-1 bg-xena-surface rounded-full overflow-hidden"><div className="h-full rounded-full" style={{ width: `${pct}%`, background: pct > 80 ? '#ff4444' : '#9147ff' }} /></div></div>}<button onClick={() => { const raw = localStorage.getItem('xenahub_home_joined') || '[]'; const ids = JSON.parse(raw); const next = registered ? ids.filter((x: string) => x !== item.id) : [...ids, item.id]; localStorage.setItem('xenahub_home_joined', JSON.stringify(next)); setRegistered(!registered); }} className={`w-full py-2 rounded-xl text-sm font-bold active:scale-[0.96] ${registered ? 'bg-xena-surface text-xena-muted border border-white/10' : 'btn-primary'}`}>{registered ? 'Kaydi Iptal Et' : 'Katil'}</button></div>;
+  
+  const handleRegister = () => {
+    try {
+      const raw = localStorage.getItem(storageKey) || '[]';
+      const ids = JSON.parse(raw);
+      let next;
+      if (registered) {
+        next = ids.filter((x: string) => x !== item.id);
+      } else {
+        next = [...ids, item.id];
+        // Katılımcı sayısını artır (local olarak)
+        item.participants = (item.participants || 0) + 1;
+      }
+      localStorage.setItem(storageKey, JSON.stringify(next));
+      setRegistered(!registered);
+      // Event güncelleme sinyali gönder
+      window.dispatchEvent(new CustomEvent('xenahub:event-joined', { detail: { eventId: item.id, joined: !registered } }));
+    } catch (e) { console.error('Event registration error', e); }
+  };
+  
+  return <div className="card w-[72vw] shrink-0 p-3.5"><div className="flex items-center gap-2 mb-2"><span className="text-[11px] font-bold px-2 py-1 rounded-full border flex items-center gap-1" style={{ background: `${cfg.color}18`, borderColor: `${cfg.color}35`, color: cfg.color }}>{cfg.icon} {cfg.label}</span>{item.prize && <span className="text-[11px] font-bold text-xena-gold bg-xena-gold/10 px-2 py-1 rounded-full">{item.prize}</span>}</div><h4 className="text-[15px] font-bold text-white line-clamp-1">{item.title}</h4><p className="text-xs text-xena-muted line-clamp-2 mt-1 mb-2">{item.description}</p><div className="space-y-1 mb-3"><div className="flex items-center gap-1.5 text-xs text-xena-muted"><Calendar size={11} className="text-xena-primary" /> {item.date}</div><div className="flex items-center gap-1.5 text-xs text-xena-muted"><span>?</span> {item.time}</div></div>{pct !== null && <div className="space-y-1 mb-3"><div className="flex justify-between text-xs"><span className="text-xena-muted">{item.participants}/{item.maxParticipants}</span><span className="font-bold text-xena-accent">%{Math.round(pct)}</span></div><div className="h-1 bg-xena-surface rounded-full overflow-hidden"><div className="h-full rounded-full" style={{ width: `${pct}%`, background: pct > 80 ? '#ff4444' : '#9147ff' }} /></div></div>}<button onClick={handleRegister} className={`w-full py-2 rounded-xl text-sm font-bold active:scale-[0.96] ${registered ? 'bg-xena-surface text-xena-muted border border-white/10' : 'btn-primary'}`}>{registered ? 'Kaydi Iptal Et' : 'Katil'}</button></div>;
 }
 
 export default function HomePage() {
