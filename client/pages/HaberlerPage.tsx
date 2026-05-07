@@ -45,7 +45,7 @@ function NewsCard({ item }: { item: NewsItem }) {
           <span className="text-[11px] font-bold px-2.5 py-1 rounded-full" style={{ background: `${config.color}18`, color: config.color }}>{config.label}</span>
           {item.isNew && <span className="text-[9px] font-extrabold bg-xena-danger text-white px-1.5 py-0.5 rounded-md">YENİ</span>}
         </div>
-        <div className="flex items-center gap-1 text-xena-muted"><Clock size={11} /> <span className="text-[11px]">{item.readTime}</span></div>
+        <div className="flex items-center gap-1 text-xena-muted"><Clock size={11} /> <span className="text-[11px]">{item.readTime ?? '2 dk'}</span></div>
       </div>
       <h3 className="text-[15px] font-bold text-white leading-snug mb-1.5">{item.title}</h3>
       <p className={`text-[13px] text-xena-muted leading-relaxed ${expanded ? '' : 'line-clamp-2'}`}>{expanded ? item.content : item.summary}</p>
@@ -54,7 +54,7 @@ function NewsCard({ item }: { item: NewsItem }) {
         <div className="flex items-center gap-3">
           <button onClick={() => setLiked(!liked)} className="flex items-center gap-1">
             <Heart size={15} className={liked ? 'text-xena-danger fill-xena-danger' : 'text-xena-muted'} />
-            <span className={`text-xs font-semibold ${liked ? 'text-xena-danger' : 'text-xena-muted'}`}>{item.likes + (liked ? 1 : 0)}</span>
+            <span className={`text-xs font-semibold ${liked ? 'text-xena-danger' : 'text-xena-muted'}`}>{(item.likes ?? 0) + (liked ? 1 : 0)}</span>
           </button>
           <button onClick={() => setExpanded(!expanded)} className="flex items-center gap-1 text-xena-primary">
             <span className="text-xs font-semibold">{expanded ? 'Kapat' : 'Devamı'}</span>
