@@ -16,7 +16,7 @@ interface MarketItem { id: string; name: string; description: string; price: num
 
 /* ========== Storage Helpers ========== */
 const get = <T,>(key: string, fallback: T): T => { try { const raw = localStorage.getItem(key); return raw ? JSON.parse(raw) : fallback; } catch { return fallback; } };
-const set = <T,>(key: string, data: T) => localStorage.setItem(key, JSON.stringify(data));
+const set = <T,>(key: string, data: T) => { localStorage.setItem(key, JSON.stringify(data)); window.dispatchEvent(new CustomEvent('xenahub:content-updated')); };
 
 const S = {
   ticker: 'xenahub_admin_ticker',
@@ -492,3 +492,4 @@ export default function AdminPage() {
     </div>
   );
 }
+

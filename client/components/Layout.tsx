@@ -1,5 +1,6 @@
 import React from 'react';
 import { Outlet, useLocation, Link } from 'react-router-dom';
+import { useContent } from '../context/ContentContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Home, Calendar, FileText, ShoppingBag, LifeBuoy } from 'lucide-react';
 
@@ -13,6 +14,7 @@ const tabs = [
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const location = useLocation();
+  const { refresh } = useContent();
 
   return (
     <div className="min-h-dvh bg-xena-bg flex flex-col">
@@ -39,6 +41,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             return (
               <Link
                 key={tab.path}
+                onClick={() => refresh()}
                 to={tab.path}
                 className="flex flex-col items-center justify-center gap-0.5 w-16 h-full relative"
               >
@@ -74,3 +77,4 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     </div>
   );
 }
+
