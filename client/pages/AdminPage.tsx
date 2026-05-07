@@ -75,7 +75,7 @@ function updatePwaMeta(settings: PWASettings) {
 
 function PWAManager() {
   const [settings, setSettings] = useState<PWASettings>(() => get(S.pwa, defaultPWA));
-  useEffect(() => { set(S.pwa, settings); updatePwaMeta(settings); }, [settings]);
+  const savePWA = () => { set(S.pwa, settings); updatePwaMeta(settings); alert("PWA ayarlari kaydedildi"); };
   const handleIcon = (file?: File) => {
     if (!file) return;
     const reader = new FileReader();
@@ -99,7 +99,7 @@ function PWAManager() {
         <Input label="Kisa Ad" value={settings.shortName} onChange={v => setSettings(prev => ({ ...prev, shortName: v }))} />
         <Input label="Tema Rengi" value={settings.themeColor} onChange={v => setSettings(prev => ({ ...prev, themeColor: v }))} />
         <Input label="Arka Plan Rengi" value={settings.backgroundColor} onChange={v => setSettings(prev => ({ ...prev, backgroundColor: v }))} />
-        <p className="text-xs text-xena-muted leading-relaxed mt-2">Not: PWA ismi/iconu yeni yuklemelerde guncellenir. Eski yuklu uygulamalar icin kaldirip yeniden yuklemek gerekebilir.</p>
+        <button onClick={savePWA} className="w-full bg-xena-primary text-white py-3 rounded-xl font-bold text-sm mt-2 flex items-center justify-center gap-2"><Save size={14} /> Kaydet</button><p className="text-xs text-xena-muted leading-relaxed mt-2">Not: PWA ismi/iconu yeni yuklemelerde guncellenir. Eski yuklu uygulamalar icin kaldirip yeniden yuklemek gerekebilir.</p>
       </div>
     </div>
   );
@@ -556,6 +556,8 @@ export default function AdminPage() {
         {activeTab === 'users' && (
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-3">
             <Card>
+              <h3 className="text-sm font-bold text-xena-muted uppercase tracking-wider mb-3">Sohbet Yonetimi</h3>
+              <button onClick={() => { indexedDB.deleteDatabase('xenahub_chat'); localStorage.setItem('xenahub_chat_clear_signal', Date.now().toString()); alert('Sohbet temizlendi. Kullanici sayfayi yenileyince bos gorunecek.'); }} className="w-full bg-xena-danger/15 text-xena-danger border border-xena-danger/30 py-3 rounded-xl font-bold text-sm mb-4">Tum Sohbeti Temizle</button>
               <h3 className="text-sm font-bold text-xena-muted uppercase tracking-wider mb-3">Sistem Kullanicilari</h3>
               <div className="space-y-2">
                 {[
@@ -591,6 +593,7 @@ export default function AdminPage() {
     </div>
   );
 }
+
 
 
 
