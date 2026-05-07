@@ -23,7 +23,7 @@ function MarqueeBar() {
 
 function BannerCarousel() {
   const { banners } = useContent();
-  const active = banners.filter((b: any) => b.active);
+  const active = banners.filter((b: any) => b.active && (b.position || 'Ana Banner') === 'Ana Banner');
   const [idx, setIdx] = useState(0);
   React.useEffect(() => { if (active.length <= 1) return; const t = setInterval(() => setIdx((p) => (p + 1) % active.length), 4000); return () => clearInterval(t); }, [active.length]);
   const b = active[idx] || active[0];
@@ -41,19 +41,23 @@ function BannerCarousel() {
 }
 
 function StreamerCarousel() {
+  const { streamers } = useContent();
+  const active = streamers.filter((s: any) => s.active);
+  const [idx, setIdx] = useState(0);
+  React.useEffect(() => { if (active.length <= 1) return; const t = setInterval(() => setIdx((p) => (p + 1) % active.length), 3800); return () => clearInterval(t); }, [active.length]);
+  const item = active[idx] || active[0];
+  if (!item) return null;
   return (
     <div className="relative w-full h-[200px] overflow-hidden rounded-2xl bg-gradient-to-br from-[#1a0a3a] via-[#9147ff] to-[#1a0a3a]">
+      {item.image && <img src={item.image} className="absolute inset-0 w-full h-full object-cover opacity-60" />}
+      <div className="absolute inset-0 bg-gradient-to-r from-black/70 to-transparent" />
       <div className="absolute inset-0 flex items-center px-5">
-        <div className="flex-1 space-y-1.5">
-          <div className="flex items-center gap-1.5 bg-xena-primary/30 border border-xena-primary/60 rounded-full px-2.5 py-1 w-fit"><Star size={10} className="text-xena-gold" /><span className="text-[10px] font-extrabold text-xena-accent tracking-wide">CEO</span></div>
-          <h3 className="text-2xl font-black text-white">XENAHUB</h3><p className="text-[13px] text-white/70">ModClub Ajans</p><div className="bg-xena-primary/25 rounded-xl px-2.5 py-1 w-fit"><span className="text-xs font-bold text-xena-accent">Canli Yayin</span></div><p className="text-xs text-white/75 line-clamp-2">Turkiye yayinci platformu</p>
-        </div>
-        <div className="w-[84px] h-[84px] rounded-full border-2 border-xena-primary/80 bg-gradient-to-br from-xena-primary to-xena-primary/40 flex items-center justify-center shrink-0"><span className="text-3xl font-black text-white">X</span></div>
+        <div className="flex-1 space-y-1.5"><div className="flex items-center gap-1.5 bg-xena-primary/30 border border-xena-primary/60 rounded-full px-2.5 py-1 w-fit"><Star size={10} className="text-xena-gold" /><span className="text-[10px] font-extrabold text-xena-accent tracking-wide">{item.badgeLabel}</span></div><h3 className="text-2xl font-black text-white">{item.name}</h3><p className="text-[13px] text-white/70">{item.realName}</p><div className="bg-xena-primary/25 rounded-xl px-2.5 py-1 w-fit"><span className="text-xs font-bold text-xena-accent">{item.game}</span></div><p className="text-xs text-white/75 line-clamp-2">{item.description}</p></div>
+        <div className="w-[84px] h-[84px] rounded-full border-2 border-xena-primary/80 bg-gradient-to-br from-xena-primary to-xena-primary/40 flex items-center justify-center shrink-0 overflow-hidden">{item.image ? <img src={item.image} className="w-full h-full object-cover" /> : <span className="text-3xl font-black text-white">{item.name[0]}</span>}</div>
       </div>
     </div>
   );
 }
-
 function NewsCard({ item }: { item: any }) {
   const [liked, setLiked] = useState(false);
   const color = NEWS_COLORS[item.category] || '#9147ff';
@@ -68,9 +72,18 @@ function EventCard({ item }: { item: any }) {
 }
 
 export default function HomePage() {
-  const { news, events } = useContent();
-  return <div className="min-h-dvh bg-xena-bg pb-20"><TopBar /><MarqueeBar /><div className="space-y-5 mt-4 px-4"><section><BannerCarousel /></section><section className="mx-[-16px] px-4"><div className="flex items-center gap-2 mb-3"><div className="w-7 h-7 rounded-lg bg-xena-gold/10 flex items-center justify-center"><Crown size={14} className="text-xena-gold" /></div><h2 className="text-base font-extrabold text-white">One Cikan Yayincilar</h2></div><StreamerCarousel /></section><section><div className="flex items-center gap-2 mb-3"><div className="w-7 h-7 rounded-lg bg-xena-primary/10 flex items-center justify-center"><Calendar size={14} className="text-xena-primary" /></div><h2 className="text-base font-extrabold text-white">Etkinlikler</h2></div><div className="flex gap-3 overflow-x-auto no-scrollbar -mx-4 px-4">{events.filter(e => e.active).slice(0,4).map(e => <EventCard key={e.id} item={e} />)}</div></section><section><div className="flex items-center gap-2 mb-3"><div className="w-7 h-7 rounded-lg bg-xena-info/10 flex items-center justify-center"><FileText size={14} className="text-xena-info" /></div><h2 className="text-base font-extrabold text-white">Haberler</h2></div>{news.filter(n => n.active).slice(0,5).map(n => <NewsCard key={n.id} item={n} />)}</section></div></div>;
+  const { news, events, refresh } = useContent();
+  const [pulling, setPulling] = useState(false);
+  const startY = React.useRef(0);
+  const onTouchStart = (e: React.TouchEvent) => { startY.current = e.touches[0].clientY; };
+  const onTouchEnd = (e: React.TouchEvent) => { if (window.scrollY === 0 && e.changedTouches[0].clientY - startY.current > 80) { setPulling(true); refresh(); setTimeout(() => setPulling(false), 650); } };
+  return <div className="min-h-dvh bg-xena-bg pb-20" onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>{pulling && <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[100] bg-xena-primary text-white px-4 py-2 rounded-full text-xs font-bold shadow-neon">Yenileniyor...</div>}<TopBar /><MarqueeBar /><div className="space-y-5 mt-4 px-4"><section><BannerCarousel /></section><section className="mx-[-16px] px-4"><div className="flex items-center gap-2 mb-3"><div className="w-7 h-7 rounded-lg bg-xena-gold/10 flex items-center justify-center"><Crown size={14} className="text-xena-gold" /></div><h2 className="text-base font-extrabold text-white">One Cikan Yayincilar</h2></div><StreamerCarousel /></section><section><div className="flex items-center gap-2 mb-3"><div className="w-7 h-7 rounded-lg bg-xena-primary/10 flex items-center justify-center"><Calendar size={14} className="text-xena-primary" /></div><h2 className="text-base font-extrabold text-white">Etkinlikler</h2></div><div className="flex gap-3 overflow-x-auto no-scrollbar -mx-4 px-4">{events.filter(e => e.active).slice(0,4).map(e => <EventCard key={e.id} item={e} />)}</div></section><section><div className="flex items-center gap-2 mb-3"><div className="w-7 h-7 rounded-lg bg-xena-info/10 flex items-center justify-center"><FileText size={14} className="text-xena-info" /></div><h2 className="text-base font-extrabold text-white">Haberler</h2></div>{news.filter(n => n.active).slice(0,5).map(n => <NewsCard key={n.id} item={n} />)}</section></div></div>;
 }
+
+
+
+
+
 
 
 
