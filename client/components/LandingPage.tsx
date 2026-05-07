@@ -11,13 +11,15 @@ function usePWAGlobal() {
   const [canInstall, setCanInstall] = useState(false);
   const [installed, setInstalled] = useState(false);
 
+  const getGlobal = (key: string) => (window as any)[key];
+
   useEffect(() => {
     const check = () => {
       const standalone =
         window.matchMedia('(display-mode: standalone)').matches ||
         (window.navigator as any).standalone === true;
-      setInstalled(standalone || window.__pwaInstalled);
-      setCanInstall(window.__pwaInstallable && !standalone);
+      setInstalled(standalone || !!getGlobal('__pwaInstalled'));
+      setCanInstall(!!getGlobal('__pwaInstallable') && !standalone);
     };
     check();
     window.addEventListener('pwa:installable' as any, () => setCanInstall(true));
@@ -25,7 +27,7 @@ function usePWAGlobal() {
   }, []);
 
   const prompt = useCallback(async () => {
-    const e = window.__deferredPrompt;
+    const e = getGlobal('__deferredPrompt');
     if (!e) return false;
     await e.prompt();
     const result = await e.userChoice;
@@ -111,18 +113,20 @@ export default function LandingPage() {
   const { isIOS, isAndroid, isDesktop } = useOS();
 
   const handleInstall = () => {
-    if (installed || window.__pwaInstalled) { window.location.href = '/'; return; }
-    if (canInstall || window.__pwaInstallable) { prompt(); return; }
+    const already = installed || !!(window as any).__pwaInstalled;
+    if (already) { window.location.href = '/'; return; }
+    if (canInstall || !!(window as any).__pwaInstallable) { prompt(); return; }
     if (isIOS) { setShowIOS(true); return; }
     setShowDesk(true);
   };
 
   const handleNavOpen = () => {
-    if (installed || window.__pwaInstalled) { window.location.reload(); return; }
+    const already = installed || !!(window as any).__pwaInstalled;
+    if (already) { window.location.reload(); return; }
     window.location.href = '/?app=1';
   };
 
-  const already = installed || window.__pwaInstalled;
+  const already = installed || !!(window as any).__pwaInstalled;
 
   return (
     <div className="min-h-dvh bg-xena-bg text-white overflow-x-hidden relative">
