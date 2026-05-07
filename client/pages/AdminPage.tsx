@@ -352,13 +352,30 @@ function BannerManager() {
   return <div className="space-y-3"><div className="flex items-center justify-between"><h3 className="text-sm font-bold text-xena-muted uppercase tracking-wider">Banner Yonetimi</h3><button onClick={() => setup()} className="bg-xena-primary/15 text-xena-primary px-3 py-1.5 rounded-lg text-xs font-bold">Yeni</button></div>{editing && <div className="glass rounded-2xl p-4 border border-xena-primary/20"><Input label="Tag" value={form.tag || ''} onChange={v => setForm({ ...form, tag: v })} /><Input label="Baslik" value={form.title || ''} onChange={v => setForm({ ...form, title: v })} /><Input label="Alt Baslik" value={form.subtitle || ''} onChange={v => setForm({ ...form, subtitle: v })} /><Input label="Harf" value={form.initial || ''} onChange={v => setForm({ ...form, initial: v })} /><label className="block bg-xena-primary/15 text-xena-primary text-xs font-bold px-3 py-2 rounded-xl mb-3 cursor-pointer">Banner Resmi Ekle<input type="file" accept="image/*" className="hidden" onChange={(e) => uploadImage(e.target.files?.[0])} /></label>{form.image && <img src={form.image} className="w-full h-28 object-cover rounded-xl mb-3" />}<div className="grid grid-cols-3 gap-2"><Input label="Renk 1" value={form.gradientStart || ''} onChange={v => setForm({ ...form, gradientStart: v })} /><Input label="Renk 2" value={form.gradientMid || ''} onChange={v => setForm({ ...form, gradientMid: v })} /><Input label="Renk 3" value={form.gradientEnd || ''} onChange={v => setForm({ ...form, gradientEnd: v })} /></div><button onClick={save} className="w-full bg-xena-primary text-white py-2.5 rounded-xl font-bold text-sm mt-2">Kaydet</button></div>}{items.map(item => <div key={item.id} className="flex items-center gap-3 glass rounded-xl p-3"><Toggle active={item.active} onToggle={() => setItems(prev => prev.map(i => i.id === item.id ? { ...i, active: !i.active } : i))} />{item.image && <img src={item.image} className="w-12 h-10 object-cover rounded-lg" />}<div className="flex-1"><div className="text-sm font-bold">{item.title}</div><div className="text-[10px] text-xena-muted">{item.tag}</div></div><button onClick={() => setup(item)} className="text-xena-primary p-1"><Edit3 size={14} /></button><button onClick={() => setItems(prev => prev.filter(i => i.id !== item.id))} className="text-xena-danger p-1"><Trash2 size={14} /></button></div>)}</div>;
 }
 function StreamerManager() {
-  const [items, setItems] = useState<StreamerItem[]>(() => get(S.streamers, defaultStreamers));
+  const [items, setItems] = useState<StreamerItem[]>(() => { try { return get(S.streamers, defaultStreamers); } catch { return defaultStreamers; } });
   const [editing, setEditing] = useState<string | null>(null);
   const [form, setForm] = useState<Partial<StreamerItem>>({});
-  useEffect(() => { set(S.streamers, items); }, [items]);
+  useEffect(() => { try { set(S.streamers, items); } catch (e) { console.warn("Streamer kayit hatasi", e); } }, [items]);
   const setup = (item?: StreamerItem) => { setEditing(item?.id || 'new'); setForm(item ? { ...item } : { name: '', realName: '', game: '', description: '', badgeLabel: 'VIP', active: true }); };
   const uploadImage = (file?: File) => { if (!file) return; const r = new FileReader(); r.onload = () => setForm(prev => ({ ...prev, image: String(r.result) })); r.readAsDataURL(file); };
-  const save = () => { if (!form.name?.trim()) return; if (editing === 'new') setItems(prev => [...prev, { ...(form as StreamerItem), id: Date.now().toString() }]); else setItems(prev => prev.map(i => i.id === editing ? { ...i, ...form } as StreamerItem : i)); setEditing(null); };
+  const save = () => { 
+    try {
+      if (!form.name?.trim()) return; 
+      const clean: StreamerItem = {
+        id: editing === 'new' ? Date.now().toString() : String(form.id || editing),
+        name: form.name || '',
+        realName: form.realName || '',
+        game: form.game || '',
+        description: form.description || '',
+        badgeLabel: form.badgeLabel || 'VIP',
+        active: form.active !== false,
+        image: form.image,
+      };
+      if (editing === 'new') setItems(prev => [...prev, clean]);
+      else setItems(prev => prev.map(i => i.id === editing ? clean : i));
+      setEditing(null);
+    } catch (e) { console.error('Streamer save error', e); alert('Yayinci kaydedilemedi.'); }
+  };
   return <div className="space-y-3"><div className="flex items-center justify-between"><h3 className="text-sm font-bold text-xena-muted uppercase tracking-wider">One Cikan Yayinci Yonetimi</h3><button onClick={() => setup()} className="bg-xena-primary/15 text-xena-primary px-3 py-1.5 rounded-lg text-xs font-bold">Yeni</button></div>{editing && <div className="glass rounded-2xl p-4 border border-xena-primary/20"><Input label="Yayinci Adi" value={form.name || ''} onChange={v => setForm({ ...form, name: v })} /><Input label="Gercek Ad / Marka" value={form.realName || ''} onChange={v => setForm({ ...form, realName: v })} /><Input label="Kategori/Oyun" value={form.game || ''} onChange={v => setForm({ ...form, game: v })} /><Input label="Aciklama" value={form.description || ''} onChange={v => setForm({ ...form, description: v })} /><Input label="Rozet" value={form.badgeLabel || ''} onChange={v => setForm({ ...form, badgeLabel: v })} /><label className="block bg-xena-primary/15 text-xena-primary text-xs font-bold px-3 py-2 rounded-xl mb-3 cursor-pointer">Yayinci Resmi Ekle<input type="file" accept="image/*" className="hidden" onChange={(e) => uploadImage(e.target.files?.[0])} /></label>{form.image && <img src={form.image} className="w-full h-28 object-cover rounded-xl mb-3" />}<button onClick={save} className="w-full bg-xena-primary text-white py-2.5 rounded-xl font-bold text-sm mt-2">Kaydet</button></div>}{items.map(item => <div key={item.id} className="flex items-center gap-3 glass rounded-xl p-3"><Toggle active={item.active} onToggle={() => setItems(prev => prev.map(i => i.id === item.id ? { ...i, active: !i.active } : i))} />{item.image && <img src={item.image} className="w-12 h-10 object-cover rounded-lg" />}<div className="flex-1"><div className="text-sm font-bold">{item.name}</div><div className="text-[10px] text-xena-muted">{item.game}</div></div><button onClick={() => setup(item)} className="text-xena-primary p-1"><Edit3 size={14} /></button><button onClick={() => setItems(prev => prev.filter(i => i.id !== item.id))} className="text-xena-danger p-1"><Trash2 size={14} /></button></div>)}</div>;
 }
 function MarketManager() {

@@ -53,15 +53,22 @@ function StreamerCarousel() {
   const [idx, setIdx] = useState(0);
   React.useEffect(() => { if (active.length <= 1) return; const t = setInterval(() => setIdx((p) => (p + 1) % active.length), 3800); return () => clearInterval(t); }, [active.length]);
   const item = active[idx] || active[0];
-  if (!item) return null;
+  if (!item || !item.name) return null;
   return (
     <div className="relative w-full h-[200px] overflow-hidden rounded-2xl bg-gradient-to-br from-[#1a0a3a] via-[#9147ff] to-[#1a0a3a]">
       {item.image && <img src={item.image} className="absolute inset-0 w-full h-full object-cover opacity-60" />}
       <div className="absolute inset-0 bg-gradient-to-r from-black/70 to-transparent" />
       <div className="absolute inset-0 flex items-center px-5">
-        <div className="flex-1 space-y-1.5"><div className="flex items-center gap-1.5 bg-xena-primary/30 border border-xena-primary/60 rounded-full px-2.5 py-1 w-fit"><Star size={10} className="text-xena-gold" /><span className="text-[10px] font-extrabold text-xena-accent tracking-wide">{item.badgeLabel}</span></div><h3 className="text-2xl font-black text-white">{item.name}</h3><p className="text-[13px] text-white/70">{item.realName}</p><div className="bg-xena-primary/25 rounded-xl px-2.5 py-1 w-fit"><span className="text-xs font-bold text-xena-accent">{item.game}</span></div><p className="text-xs text-white/75 line-clamp-2">{item.description}</p></div>
-        <div className="w-[84px] h-[84px] rounded-full border-2 border-xena-primary/80 bg-gradient-to-br from-xena-primary to-xena-primary/40 flex items-center justify-center shrink-0 overflow-hidden">{item.image ? <img src={item.image} className="w-full h-full object-cover" /> : <span className="text-3xl font-black text-white">{item.name[0]}</span>}</div>
+        <div className="flex-1 space-y-1.5"><div className="flex items-center gap-1.5 bg-xena-primary/30 border border-xena-primary/60 rounded-full px-2.5 py-1 w-fit"><Star size={10} className="text-xena-gold" /><span className="text-[10px] font-extrabold text-xena-accent tracking-wide">{item.badgeLabel || 'VIP'}</span></div><h3 className="text-2xl font-black text-white">{item.name}</h3><p className="text-[13px] text-white/70">{item.realName || ''}</p><div className="bg-xena-primary/25 rounded-xl px-2.5 py-1 w-fit"><span className="text-xs font-bold text-xena-accent">{item.game || 'Oyun'}</span></div><p className="text-xs text-white/75 line-clamp-2">{item.description || ''}</p></div>
+        <div className="w-[84px] h-[84px] rounded-full border-2 border-xena-primary/80 bg-gradient-to-br from-xena-primary to-xena-primary/40 flex items-center justify-center shrink-0 overflow-hidden">{item.image ? <img src={item.image} className="w-full h-full object-cover" /> : <span className="text-3xl font-black text-white">{item.name[0] || '?'}</span>}</div>
       </div>
+      {active.length > 1 && (
+        <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5">
+          {active.map((_, i) => (
+            <button key={i} onClick={() => setIdx(i)} className={`w-2 h-2 rounded-full transition-all ${i === idx ? 'bg-white w-4' : 'bg-white/40'}`} />
+          ))}
+        </div>
+      )}
     </div>
   );
 }
