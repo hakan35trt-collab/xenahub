@@ -23,7 +23,7 @@ function MarqueeBar() {
 
 function BannerCarousel() {
   const { banners } = useContent();
-  const active = banners.filter((b: any) => b.active && (b.position || 'Ana Banner') === 'Ana Banner');
+  const active = banners.filter((b: any) => b.active);
   const [idx, setIdx] = useState(0);
   React.useEffect(() => { if (active.length <= 1) return; const t = setInterval(() => setIdx((p) => (p + 1) % active.length), 4000); return () => clearInterval(t); }, [active.length]);
   const b = active[idx] || active[0];
@@ -36,6 +36,13 @@ function BannerCarousel() {
           <div><h3 className="text-xl font-black text-white">{b.title}</h3><p className="text-xs text-white/80 mt-1">{b.subtitle}</p></div>
         </div>
       </div>
+      {active.length > 1 && (
+        <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1.5">
+          {active.map((_, i) => (
+            <button key={i} onClick={() => setIdx(i)} className={`w-2 h-2 rounded-full transition-all ${i === idx ? 'bg-white w-4' : 'bg-white/40'}`} />
+          ))}
+        </div>
+      )}
     </div>
   );
 }

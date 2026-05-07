@@ -7,7 +7,7 @@ export interface NewsItem { id: string; title: string; summary: string; content:
 export interface EventItem { id: string; title: string; description: string; date: string; time: string; location: string; type: string; prize?: string; participants: number; maxParticipants?: number; active: boolean; }
 export interface MarketItem { id: string; name: string; description: string; price: number; category: string; active: boolean; hot?: boolean; limited?: boolean; color: string; }
 export interface PWASettings { name: string; shortName: string; themeColor: string; backgroundColor: string; icon?: string; }
-export interface BannerItem { id: string; tag: string; title: string; subtitle: string; initial: string; gradientStart: string; gradientMid: string; gradientEnd: string; active: boolean; image?: string; position?: string; }
+export interface BannerItem { id: string; tag: string; title: string; subtitle: string; initial: string; gradientStart: string; gradientMid: string; gradientEnd: string; active: boolean; image?: string; }
 export interface StreamerItem { id: string; name: string; realName: string; game: string; description: string; badgeLabel: string; active: boolean; image?: string; }
 const defaultTicker: TickerItem[] = [
   { id: 't1', text: '?? XENAHUB Mayis Turnuvasi kayitlari basladi!', active: true },
@@ -33,8 +33,8 @@ const defaultStreamers: StreamerItem[] = [
 ];
 const defaultPWA: PWASettings = { name: 'XENAHUB', shortName: 'XENAHUB', themeColor: '#0a0a0f', backgroundColor: '#0a0a0f' };
 const defaultBanners: BannerItem[] = [
-  { id: 'b1', tag: 'XENAHUB', title: 'Premium Yayinci Platformu', subtitle: 'Turnuvalar, haberler ve market tek uygulamada', initial: 'X', gradientStart: '#1a0a3a', gradientMid: '#9147ff', gradientEnd: '#050509', active: true, position: 'Ana Banner' },
-  { id: 'b2', tag: 'MODCLUB', title: 'CEO Panel Aktif', subtitle: 'Admin panelden tum icerigi yonet', initial: 'M', gradientStart: '#050509', gradientMid: '#7c3aed', gradientEnd: '#111827', active: true, position: 'Ikinci Banner' },
+  { id: 'b1', tag: 'XENAHUB', title: 'Premium Yayinci Platformu', subtitle: 'Turnuvalar, haberler ve market tek uygulamada', initial: 'X', gradientStart: '#1a0a3a', gradientMid: '#9147ff', gradientEnd: '#050509', active: true },
+  { id: 'b2', tag: 'MODCLUB', title: 'CEO Panel Aktif', subtitle: 'Admin panelden tum icerigi yonet', initial: 'M', gradientStart: '#050509', gradientMid: '#7c3aed', gradientEnd: '#111827', active: true },
 ];
 interface ContentContextValue { ticker: TickerItem[]; news: NewsItem[]; events: EventItem[]; market: MarketItem[]; pwa: PWASettings; banners: BannerItem[]; streamers: StreamerItem[]; refresh: () => void; }
 const ContentContext = createContext<ContentContextValue | null>(null);
