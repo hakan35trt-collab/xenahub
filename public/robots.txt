@@ -1,0 +1,11 @@
+User-agent: *
+Allow: /
+Allow: /haberler
+Allow: /etkinlikler
+Allow: /market
+Allow: /destek
+Disallow: /api/
+Disallow: /admin/
+Disallow: /server/
+
+Sitemap: https://xenahub.app/sitemap.xml
