@@ -5,6 +5,7 @@ import hpp from 'hpp';
 import cors from 'cors';
 import compression from 'compression';
 import path from 'path';
+import fs from 'fs';
 import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
 import { connectDB } from './db.js';
@@ -19,7 +20,7 @@ const PORT = process.env.PORT || 3000;
 const isProd = process.env.NODE_ENV === 'production';
 
 // Connect to MongoDB (optional - app works without it)
-connectDB().catch((err) => console.warn('[DB] MongoDB not connected (optional):', err.message));
+connectDB().catch((err: any) => console.warn('[DB] MongoDB not connected (optional):', err.message));
 
 // Security middleware
 app.use(helmet({
@@ -71,11 +72,26 @@ app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString(), env: isProd ? 'production' : 'development' });
 });
 
-// Static files - Railway'de dist/ kök dizinde olmalı
-const distPath = path.join(__dirname, '..', 'dist');
-console.log('[STATIC] Serving from:', distPath);
+// Robust dist path resolution for Railway + local
+const possiblePaths = [
+  path.join(process.cwd(), 'dist'),
+  path.join(__dirname, '..', '..', 'dist'),
+  '/app/dist',
+  path.join(__dirname, '..', 'dist'),
+];
 
-app.use(express.static(distPath, {
+let finalDistPath = possiblePaths[0];
+for (const p of possiblePaths) {
+  const exists = fs.existsSync(path.join(p, 'index.html'));
+  console.log('[STATIC] Checking', p, '->', exists ? 'FOUND' : 'NOT FOUND');
+  if (exists) {
+    finalDistPath = p;
+    break;
+  }
+}
+console.log('[STATIC] Serving from:', finalDistPath);
+
+app.use(express.static(finalDistPath, {
   maxAge: '1y',
   immutable: true,
   setHeaders: (res, filepath) => {
@@ -87,8 +103,12 @@ app.use(express.static(distPath, {
 
 // SPA fallback
 app.get('*', (_req, res) => {
-  const indexPath = path.join(distPath, 'index.html');
+  const indexPath = path.join(finalDistPath, 'index.html');
   console.log('[SPA] Serving index.html from:', indexPath);
+  if (!fs.existsSync(indexPath)) {
+    console.error('[SPA] index.html NOT FOUND at:', indexPath);
+    return res.status(500).json({ error: 'Internal server error', detail: 'index.html not found' });
+  }
   res.sendFile(indexPath, (err) => {
     if (err) {
       console.error('[SPA] Error serving index.html:', err);
