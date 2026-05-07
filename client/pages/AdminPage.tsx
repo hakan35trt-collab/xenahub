@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import {
   ArrowLeft, Shield, Users, MessageSquare, Ticket, TrendingUp, Ban,
   Crown, Star, CheckCircle, XCircle, Plus, Trash2, Edit3, Save, X,
-  Megaphone, ShoppingBag, Newspaper, Calendar, AlertTriangle, Eye, EyeOff
+  Megaphone, ShoppingBag, Newspaper, Calendar, AlertTriangle, Eye, EyeOff, ChevronRight
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
@@ -12,7 +12,7 @@ import { useAuth } from '../context/AuthContext';
 interface TickerItem { id: string; text: string; active: boolean; }
 interface NewsItem { id: string; title: string; summary: string; content: string; date: string; category: string; active: boolean; }
 interface EventItem { id: string; title: string; description: string; date: string; time: string; location: string; type: string; prize?: string; participants: number; maxParticipants?: number; active: boolean; }
-interface MarketItem { id: string; name: string; description: string; price: number; category: string; active: boolean; hot?: boolean; color: string; }
+interface MarketItem { id: string; name: string; description: string; price: number; category: string; active: boolean; hot?: boolean; limited?: boolean; color: string; }
 
 /* ========== Storage Helpers ========== */
 const get = <T,>(key: string, fallback: T): T => { try { const raw = localStorage.getItem(key); return raw ? JSON.parse(raw) : fallback; } catch { return fallback; } };
@@ -49,7 +49,7 @@ const defaultMarket: MarketItem[] = [
 ];
 
 /* ========== Reusable Components ========== */
-function Input({ label, value, onChange, type = 'text', placeholder = '' }: any) {
+function Input({ label, value, onChange, type = 'text', placeholder = '' }: { label: string; value: string; onChange: (v: string) => void; type?: string; placeholder?: string }) {
   return (
     <div className="mb-3">
       <label className="block text-xs text-xena-muted font-bold uppercase tracking-wider mb-1">{label}</label>
@@ -64,7 +64,7 @@ function Input({ label, value, onChange, type = 'text', placeholder = '' }: any)
   );
 }
 
-function Select({ label, value, onChange, options }: any) {
+function Select({ label, value, onChange, options }: { label: string; value: string; onChange: (v: string) => void; options: string[] }) {
   return (
     <div className="mb-3">
       <label className="block text-xs text-xena-muted font-bold uppercase tracking-wider mb-1">{label}</label>
