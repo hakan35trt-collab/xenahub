@@ -14,7 +14,7 @@ interface NewsItem { id: string; title: string; summary: string; content: string
 interface EventItem { id: string; title: string; description: string; date: string; time: string; location: string; type: string; prize?: string; participants: number; maxParticipants?: number; active: boolean; }
 interface MarketItem { id: string; name: string; description: string; price: number; category: string; active: boolean; hot?: boolean; limited?: boolean; color: string; }
 interface PWASettings { name: string; shortName: string; themeColor: string; backgroundColor: string; icon?: string; }
-interface BannerItem { id: string; tag: string; title: string; subtitle: string; initial: string; gradientStart: string; gradientMid: string; gradientEnd: string; active: boolean; }
+interface BannerItem { id: string; tag: string; title: string; subtitle: string; initial: string; gradientStart: string; gradientMid: string; gradientEnd: string; active: boolean; image?: string; position?: string; }
 
 /* ========== Storage Helpers ========== */
 const get = <T,>(key: string, fallback: T): T => { try { const raw = localStorage.getItem(key); return raw ? JSON.parse(raw) : fallback; } catch { return fallback; } };
@@ -55,8 +55,8 @@ const defaultMarket: MarketItem[] = [
 
 const defaultPWA: PWASettings = { name: 'XENAHUB', shortName: 'XENAHUB', themeColor: '#0a0a0f', backgroundColor: '#0a0a0f' };
 const defaultBanners: BannerItem[] = [
-  { id: 'b1', tag: 'XENAHUB', title: 'Premium Yayinci Platformu', subtitle: 'Turnuvalar, haberler ve market tek uygulamada', initial: 'X', gradientStart: '#1a0a3a', gradientMid: '#9147ff', gradientEnd: '#050509', active: true },
-  { id: 'b2', tag: 'MODCLUB', title: 'CEO Panel Aktif', subtitle: 'Admin panelden tum icerigi yonet', initial: 'M', gradientStart: '#050509', gradientMid: '#7c3aed', gradientEnd: '#111827', active: true },
+  { id: 'b1', tag: 'XENAHUB', title: 'Premium Yayinci Platformu', subtitle: 'Turnuvalar, haberler ve market tek uygulamada', initial: 'X', gradientStart: '#1a0a3a', gradientMid: '#9147ff', gradientEnd: '#050509', active: true, position: 'Ana Banner' },
+  { id: 'b2', tag: 'MODCLUB', title: 'CEO Panel Aktif', subtitle: 'Admin panelden tum icerigi yonet', initial: 'M', gradientStart: '#050509', gradientMid: '#7c3aed', gradientEnd: '#111827', active: true, position: 'Ikinci Banner' },
 ];
 
 function updatePwaMeta(settings: PWASettings) {
@@ -318,11 +318,11 @@ function BannerManager() {
   const [editing, setEditing] = useState<string | null>(null);
   const [form, setForm] = useState<Partial<BannerItem>>({});
   useEffect(() => { set(S.banners, items); }, [items]);
-  const setup = (item?: BannerItem) => { setEditing(item?.id || 'new'); setForm(item ? { ...item } : { tag: 'XENAHUB', title: '', subtitle: '', initial: 'X', gradientStart: '#1a0a3a', gradientMid: '#9147ff', gradientEnd: '#050509', active: true }); };
+  const setup = (item?: BannerItem) => { setEditing(item?.id || 'new'); setForm(item ? { ...item } : { tag: 'XENAHUB', title: '', subtitle: '', initial: 'X', gradientStart: '#1a0a3a', gradientMid: '#9147ff', gradientEnd: '#050509', active: true, position: 'Ana Banner' }); };
+  const uploadImage = (file?: File) => { if (!file) return; const r = new FileReader(); r.onload = () => setForm(prev => ({ ...prev, image: String(r.result) })); r.readAsDataURL(file); };
   const save = () => { if (!form.title?.trim()) return; if (editing === 'new') setItems(prev => [...prev, { ...(form as BannerItem), id: Date.now().toString() }]); else setItems(prev => prev.map(i => i.id === editing ? { ...i, ...form } as BannerItem : i)); setEditing(null); };
-  return <div className="space-y-3"><div className="flex items-center justify-between"><h3 className="text-sm font-bold text-xena-muted uppercase tracking-wider">Banner Yonetimi</h3><button onClick={() => setup()} className="bg-xena-primary/15 text-xena-primary px-3 py-1.5 rounded-lg text-xs font-bold">Yeni</button></div>{editing && <div className="glass rounded-2xl p-4 border border-xena-primary/20"><Input label="Tag" value={form.tag || ''} onChange={v => setForm({ ...form, tag: v })} /><Input label="Baslik" value={form.title || ''} onChange={v => setForm({ ...form, title: v })} /><Input label="Alt Baslik" value={form.subtitle || ''} onChange={v => setForm({ ...form, subtitle: v })} /><Input label="Harf" value={form.initial || ''} onChange={v => setForm({ ...form, initial: v })} /><div className="grid grid-cols-3 gap-2"><Input label="Renk 1" value={form.gradientStart || ''} onChange={v => setForm({ ...form, gradientStart: v })} /><Input label="Renk 2" value={form.gradientMid || ''} onChange={v => setForm({ ...form, gradientMid: v })} /><Input label="Renk 3" value={form.gradientEnd || ''} onChange={v => setForm({ ...form, gradientEnd: v })} /></div><button onClick={save} className="w-full bg-xena-primary text-white py-2.5 rounded-xl font-bold text-sm mt-2">Kaydet</button></div>}{items.map(item => <div key={item.id} className="flex items-center gap-3 glass rounded-xl p-3"><Toggle active={item.active} onToggle={() => setItems(prev => prev.map(i => i.id === item.id ? { ...i, active: !i.active } : i))} /><div className="flex-1"><div className="text-sm font-bold">{item.title}</div><div className="text-[10px] text-xena-muted">{item.tag}</div></div><button onClick={() => setup(item)} className="text-xena-primary p-1"><Edit3 size={14} /></button><button onClick={() => setItems(prev => prev.filter(i => i.id !== item.id))} className="text-xena-danger p-1"><Trash2 size={14} /></button></div>)}</div>;
-}
-function MarketManager() {
+  return <div className="space-y-3"><div className="flex items-center justify-between"><h3 className="text-sm font-bold text-xena-muted uppercase tracking-wider">Banner Yonetimi</h3><button onClick={() => setup()} className="bg-xena-primary/15 text-xena-primary px-3 py-1.5 rounded-lg text-xs font-bold">Yeni</button></div>{editing && <div className="glass rounded-2xl p-4 border border-xena-primary/20"><Input label="Tag" value={form.tag || ''} onChange={v => setForm({ ...form, tag: v })} /><Select label="Banner Yeri" value={form.position || 'Ana Banner'} onChange={v => setForm({ ...form, position: v })} options={['Ana Banner', 'Ikinci Banner']} /><Input label="Baslik" value={form.title || ''} onChange={v => setForm({ ...form, title: v })} /><Input label="Alt Baslik" value={form.subtitle || ''} onChange={v => setForm({ ...form, subtitle: v })} /><Input label="Harf" value={form.initial || ''} onChange={v => setForm({ ...form, initial: v })} /><label className="block bg-xena-primary/15 text-xena-primary text-xs font-bold px-3 py-2 rounded-xl mb-3 cursor-pointer">Banner Resmi Ekle<input type="file" accept="image/*" className="hidden" onChange={(e) => uploadImage(e.target.files?.[0])} /></label>{form.image && <img src={form.image} className="w-full h-28 object-cover rounded-xl mb-3" />}<div className="grid grid-cols-3 gap-2"><Input label="Renk 1" value={form.gradientStart || ''} onChange={v => setForm({ ...form, gradientStart: v })} /><Input label="Renk 2" value={form.gradientMid || ''} onChange={v => setForm({ ...form, gradientMid: v })} /><Input label="Renk 3" value={form.gradientEnd || ''} onChange={v => setForm({ ...form, gradientEnd: v })} /></div><button onClick={save} className="w-full bg-xena-primary text-white py-2.5 rounded-xl font-bold text-sm mt-2">Kaydet</button></div>}{items.map(item => <div key={item.id} className="flex items-center gap-3 glass rounded-xl p-3"><Toggle active={item.active} onToggle={() => setItems(prev => prev.map(i => i.id === item.id ? { ...i, active: !i.active } : i))} />{item.image && <img src={item.image} className="w-12 h-10 object-cover rounded-lg" />}<div className="flex-1"><div className="text-sm font-bold">{item.title}</div><div className="text-[10px] text-xena-muted">{item.position || 'Ana Banner'} · {item.tag}</div></div><button onClick={() => setup(item)} className="text-xena-primary p-1"><Edit3 size={14} /></button><button onClick={() => setItems(prev => prev.filter(i => i.id !== item.id))} className="text-xena-danger p-1"><Trash2 size={14} /></button></div>)}</div>;
+}function MarketManager() {
   const [items, setItems] = useState<MarketItem[]>(() => get(S.market, defaultMarket));
   const [editing, setEditing] = useState<string | null>(null);
   const [form, setForm] = useState<Partial<MarketItem>>({});
@@ -554,6 +554,8 @@ export default function AdminPage() {
     </div>
   );
 }
+
+
 
 
 
