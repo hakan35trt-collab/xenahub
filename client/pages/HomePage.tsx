@@ -18,7 +18,7 @@ function MarqueeBar() {
   const active = ticker.filter((a) => a.active);
   if (!active.length) return null;
   const text = active.map((a) => a.text).join('  ?  ');
-  return <div className="bg-xena-primary/10 border-y border-xena-primary/20 overflow-hidden py-1.5"><div className="whitespace-nowrap animate-[marquee_20s_linear_infinite]"><span className="text-xs font-semibold text-xena-accent pl-4">{text} ? {text}</span></div></div>;
+  return <div className="bg-xena-primary/10 border-y border-xena-primary/20 overflow-hidden py-1.5"><div className="marquee-track"><span className="text-xs font-semibold text-xena-accent pl-4">{text} ? {text}</span></div></div>;
 }
 
 function BannerCarousel() {
@@ -65,3 +65,4 @@ export default function HomePage() {
   const { news, events } = useContent();
   return <div className="min-h-dvh bg-xena-bg pb-20"><TopBar /><MarqueeBar /><div className="space-y-5 mt-4 px-4"><section><BannerCarousel /></section><section className="mx-[-16px] px-4"><div className="flex items-center gap-2 mb-3"><div className="w-7 h-7 rounded-lg bg-xena-gold/10 flex items-center justify-center"><Crown size={14} className="text-xena-gold" /></div><h2 className="text-base font-extrabold text-white">One Cikan Yayincilar</h2></div><StreamerCarousel /></section><section><div className="flex items-center gap-2 mb-3"><div className="w-7 h-7 rounded-lg bg-xena-primary/10 flex items-center justify-center"><Calendar size={14} className="text-xena-primary" /></div><h2 className="text-base font-extrabold text-white">Etkinlikler</h2></div><div className="flex gap-3 overflow-x-auto no-scrollbar -mx-4 px-4">{events.filter(e => e.active).slice(0,4).map(e => <EventCard key={e.id} item={e} />)}</div></section><section><div className="flex items-center gap-2 mb-3"><div className="w-7 h-7 rounded-lg bg-xena-info/10 flex items-center justify-center"><FileText size={14} className="text-xena-info" /></div><h2 className="text-base font-extrabold text-white">Haberler</h2></div>{news.filter(n => n.active).slice(0,5).map(n => <NewsCard key={n.id} item={n} />)}</section></div></div>;
 }
+
