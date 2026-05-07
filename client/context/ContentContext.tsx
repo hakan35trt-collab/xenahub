@@ -1,174 +1,102 @@
-import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
-import Dexie from 'dexie';
+import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 
-const db = new Dexie('xenahub_content') as any;
-db.version(1).stores({
-  banners: 'id',
-  announcements: 'id',
-  streamers: 'id',
-  config: 'key',
-});
+/* ===== Storage Helpers ===== */
+const get = <T,>(key: string, fallback: T): T => {
+  try { const raw = localStorage.getItem(key); return raw ? JSON.parse(raw) : fallback; } catch { return fallback; }
+};
+const set = <T,>(key: string, data: T) => localStorage.setItem(key, JSON.stringify(data));
 
-export interface BannerItem {
-  id: string;
-  title: string;
-  subtitle: string;
-  tag: string;
-  tagIcon: string;
-  gradientStart: string;
-  gradientMid: string;
-  gradientEnd: string;
-  accentColor: string;
-  initial: string;
-  imageUrl?: string;
-}
-
-export interface Announcement {
-  id: string;
-  text: string;
-  active: boolean;
-}
-
-export interface SplashConfig {
-  title: string;
-  subtitle: string;
-  slogan: string;
-}
-
-export interface FeaturedStreamer {
-  id: string;
-  name: string;
-  realName?: string;
-  description?: string;
-  imageUrl?: string;
-  badgeLabel: string;
-  game?: string;
-  active: boolean;
-}
-
-const DEFAULT_BANNERS: BannerItem[] = [
-  { id: 'b1', title: 'KralGamer_TR', subtitle: 'Bu akşam 21:00\'de canlı yayında! Valorant rekabetçi maçlar sizi bekliyor.', tag: 'CANLI', tagIcon: 'radio', gradientStart: '#9147ff', gradientMid: '#6441a4', gradientEnd: '#1a0a3a', accentColor: '#bf94ff', initial: 'K' },
-  { id: 'b2', title: 'Valorant Turnuvası', subtitle: '5.000 TL ödüllü büyük turnuva 18 Mayıs\'ta başlıyor. Hemen kayıt ol!', tag: 'TURNUVA', tagIcon: 'trophy', gradientStart: '#c89b14', gradientMid: '#8b6914', gradientEnd: '#2a1f00', accentColor: '#FFD700', initial: 'T' },
-  { id: 'b3', title: 'İstanbul Buluşması', subtitle: '25 Mayıs\'ta Kadıköy\'de görüşüyoruz. Sürpriz konuklar ve hediyeler!', tag: 'ETKİNLİK', tagIcon: 'account-group', gradientStart: '#0070cc', gradientMid: '#004f99', gradientEnd: '#001a33', accentColor: '#40a9ff', initial: 'B' },
-];
-
-const DEFAULT_ANNOUNCEMENTS: Announcement[] = [
-  { id: 'a1', text: '🏆  XENAHUB Mayıs Turnuvası kayıtları başladı!', active: true },
-  { id: 'a2', text: '⚡  KralGamer_TR bu akşam 21:00\'de canlıda!', active: true },
-  { id: 'a3', text: '🎁  5000 TL ödüllü Valorant turnuvası — Kayıt için Etkinlikler sekmesine git', active: true },
-  { id: 'a4', text: '🌟  Ayın Yayıncısı oylaması başladı — Oy kullan!', active: true },
-];
-
-const DEFAULT_SPLASH: SplashConfig = {
-  title: 'Türkiye\'nin Yayıncı Platformu',
-  subtitle: 'BİZE ÜYE DEĞİL DOST LAZIM',
-  slogan: '',
+const KEYS = {
+  ticker: 'xenahub_admin_ticker',
+  news: 'xenahub_admin_news',
+  events: 'xenahub_admin_events',
+  market: 'xenahub_admin_market',
+  pwa: 'xenahub_admin_pwa',
 };
 
-const DEFAULT_FEATURED: FeaturedStreamer[] = [
-  { id: 'fs1', name: 'KralGamer_TR', realName: 'Mert Yılmaz', description: 'Türkiye\'nin en iyi Valorant yayıncısı! Her gece 21:00\'de canlıda.', game: 'Valorant', badgeLabel: 'AYIN YAYINCISI', active: true },
-  { id: 'fs2', name: 'ZeynepPlay', realName: 'Zeynep Kaya', description: 'FPS ve strateji oyunlarında bu haftanın yıldızı!', game: 'CS2', badgeLabel: 'HAFTANIN YAYINCISI', active: true },
+/* ===== Types ===== */
+export interface TickerItem { id: string; text: string; active: boolean; }
+export interface NewsItem { id: string; title: string; summary: string; content: string; date: string; category: string; active: boolean; readTime?: string; likes?: number; isNew?: boolean; }
+export interface EventItem { id: string; title: string; description: string; date: string; time: string; location: string; type: string; prize?: string; participants: number; maxParticipants?: number; active: boolean; }
+export interface MarketItem { id: string; name: string; description: string; price: number; category: string; active: boolean; hot?: boolean; limited?: boolean; color: string; }
+export interface PWASettings { name: string; shortName: string; themeColor: string; backgroundColor: string; }
+
+/* ===== Defaults ===== */
+const defaultTicker: TickerItem[] = [
+  { id: 't1', text: '\u{1F3C6} XENAHUB Mayis Turnuvasi kayitlari basladi!', active: true },
+  { id: 't2', text: '\u{26A1} KralGamer_TR bu aksam 21:00\'de canlida!', active: true },
+  { id: 't3', text: '\u{1F381} 5000 TL odullu Valorant turnuvasi', active: true },
 ];
 
+const defaultNews: NewsItem[] = [
+  { id: 'n1', title: 'XENAHUB Mayis Destek Programi Basladi', summary: 'Yeni yayıncilara ozel mentorluk ve ekipman destegi.', content: 'Bu ay baslattigimiz yeni destek programiyla 100 yeni yayınciya mentorluk, ekipman ve reklam destegi saglayacagiz.', date: '6 Mayis 2026', category: 'platform', active: true, readTime: '2 dk', likes: 234, isNew: true },
+  { id: 'n2', title: 'Valorant Episode 9 Guncellemesi', summary: 'Yeni harita, yeni ajan ve buyuk meta degisiklikleri.', content: 'Valorant\'in en buyuk guncellemelerinden biri olan Episode 9 ile birlikte Pearl haritasi yenilendi.', date: '5 Mayis 2026', category: 'gaming', active: true, readTime: '3 dk', likes: 567, isNew: true },
+  { id: 'n3', title: 'Turkiye Esports Sampiyonasi Finali', summary: 'Bu hafta sonu gerceklesecek final maci.', content: '5 yildir duzenledigimiz Turkiye Esports Sampiyonasi\'nin bu yilki finali Istanbul Arena\'da gerceklesecek.', date: '4 Mayis 2026', category: 'esports', active: true, readTime: '4 dk', likes: 892 },
+  { id: 'n4', title: 'XENAHUB v2.5 Guncellemesi', summary: 'Sohbet filtreleme, yeni bildirim sistemi.', content: 'Bu guncellemede sohbet icin gelismis spam filtreleme eklendi.', date: '3 Mayis 2026', category: 'update', active: true, readTime: '2 dk', likes: 145 },
+  { id: 'n5', title: 'GTA VI Turkiye Lansman Tarihi', summary: 'Rockstar Games, GTA VI lansmani icin ozel etkinlik planliyor.', content: 'GTA VI\'nin resmi Turkiye lansmani 2 Haziran 2026 tarihinde Istanbul\'da yapilacak.', date: '2 Mayis 2026', category: 'gaming', active: true, readTime: '3 dk', likes: 1243 },
+];
+
+const defaultEvents: EventItem[] = [
+  { id: 'e1', title: 'Valorant Turkiye Turnuvasi', description: 'Aylik Valorant turnuvamiz basliyor!', date: '18 Mayis 2026', time: '20:00', location: 'Online', type: 'tournament', prize: '5.000 TL', participants: 128, maxParticipants: 256, active: true },
+  { id: 'e2', title: 'Istanbul Oyuncu Bulusmasi', description: 'Surpriz konuklar ve hediyeler!', date: '25 Mayis 2026', time: '14:00', location: 'Istanbul, Kadikoy', type: 'meetup', participants: 45, maxParticipants: 100, active: true },
+  { id: 'e3', title: 'Yardim Yayini - Deprem Bolgesi', description: 'Deprem bolgesindeki cocuklar icin 24 saatlik yardim yayini.', date: '1 Haziran 2026', time: '12:00', location: 'Online', type: 'charity', participants: 340, active: true },
+  { id: 'e4', title: 'CS2 Pro vs Amateur', description: 'Profesyonel oyuncular amator izleyicilere karsi!', date: '8 Haziran 2026', time: '21:00', location: 'Online', type: 'tournament', prize: '2.500 TL', participants: 64, maxParticipants: 128, active: true },
+  { id: 'e5', title: 'Yaz Festivali 2026', description: 'Yaz aylarinin buyuk festivali!', date: '15 Haziran 2026', time: '11:00', location: 'Ankara, ODTU Kultur Merkezi', type: 'special', participants: 200, maxParticipants: 500, active: true },
+];
+
+const defaultMarket: MarketItem[] = [
+  { id: 'm1', name: 'Baslangic Paketi', description: '100 Coins', price: 300, category: 'paket', active: true, hot: true, color: '#5cff7f' },
+  { id: 'm2', name: 'Orta Paket', description: '250 Coins', price: 700, category: 'paket', active: true, color: '#40a9ff' },
+  { id: 'm3', name: 'Buyuk Paket', description: '500 Coins', price: 1200, category: 'paket', active: true, hot: true, color: '#9147ff' },
+  { id: 'm4', name: 'VIP Uyelik 7 Gun', description: '7 gunluk VIP ayricaliklari', price: 800, category: 'uyelik', active: true, limited: true, color: '#00b3ff' },
+  { id: 'm5', name: 'VIP Uyelik 30 Gun', description: '30 gunluk VIP ayricaliklari', price: 2500, category: 'uyelik', active: true, color: '#FFD700' },
+  { id: 'm6', name: 'Ozel Emoji Paketi', description: '10 ozel emoji', price: 500, category: 'emote', active: true, color: '#ff6b9d' },
+];
+
+const defaultPWA: PWASettings = { name: 'XENAHUB', shortName: 'XENAHUB', themeColor: '#0a0a0f', backgroundColor: '#0a0a0f' };
+
+/* ===== Context ===== */
 interface ContentContextValue {
-  banners: BannerItem[];
-  announcements: Announcement[];
-  splashConfig: SplashConfig;
-  featuredStreamers: FeaturedStreamer[];
-  addBanner: (b: Omit<BannerItem, 'id'>) => void;
-  updateBanner: (id: string, b: Partial<BannerItem>) => void;
-  deleteBanner: (id: string) => void;
-  addAnnouncement: (text: string) => void;
-  updateAnnouncement: (id: string, changes: Partial<Announcement>) => void;
-  deleteAnnouncement: (id: string) => void;
-  updateSplashConfig: (changes: Partial<SplashConfig>) => void;
-  addFeaturedStreamer: (s: Omit<FeaturedStreamer, 'id'>) => void;
-  updateFeaturedStreamer: (id: string, changes: Partial<FeaturedStreamer>) => void;
-  deleteFeaturedStreamer: (id: string) => void;
+  ticker: TickerItem[];
+  news: NewsItem[];
+  events: EventItem[];
+  market: MarketItem[];
+  pwa: PWASettings;
+  refresh: () => void;
 }
 
 const ContentContext = createContext<ContentContextValue | null>(null);
 
 export function ContentProvider({ children }: { children: React.ReactNode }) {
-  const [banners, setBanners] = useState<BannerItem[]>(DEFAULT_BANNERS);
-  const [announcements, setAnnouncements] = useState<Announcement[]>(DEFAULT_ANNOUNCEMENTS);
-  const [splashConfig, setSplashConfig] = useState<SplashConfig>(DEFAULT_SPLASH);
-  const [featuredStreamers, setFeaturedStreamers] = useState<FeaturedStreamer[]>(DEFAULT_FEATURED);
+  const [ticker, setTicker] = useState<TickerItem[]>(() => get(KEYS.ticker, defaultTicker));
+  const [news, setNews] = useState<NewsItem[]>(() => get(KEYS.news, defaultNews));
+  const [events, setEvents] = useState<EventItem[]>(() => get(KEYS.events, defaultEvents));
+  const [market, setMarket] = useState<MarketItem[]>(() => get(KEYS.market, defaultMarket));
+  const [pwa, setPwa] = useState<PWASettings>(() => get(KEYS.pwa, defaultPWA));
 
-  useEffect(() => { load(); }, []);
-
-  const load = async () => {
-    try {
-      const [b, a, s, f] = await Promise.all([
-        db.banners.toArray(),
-        db.announcements.toArray(),
-        db.config.get('splash'),
-        db.config.get('featured'),
-      ]);
-      if (b && b.length > 0) setBanners(b);
-      if (a && a.length > 0) setAnnouncements(a);
-      if (s) setSplashConfig({ ...DEFAULT_SPLASH, ...s.data });
-      if (f) setFeaturedStreamers(f.data);
-    } catch { /* ignore */ }
-  };
-
-  const saveBanners = async (data: BannerItem[]) => {
-    await db.banners.clear();
-    await db.banners.bulkPut(data);
-  };
-  const saveAnnouncements = async (data: Announcement[]) => {
-    await db.announcements.clear();
-    await db.announcements.bulkPut(data);
-  };
-  const saveSplash = async (data: SplashConfig) => {
-    await db.config.put({ key: 'splash', data });
-  };
-  const saveFeatured = async (data: FeaturedStreamer[]) => {
-    await db.config.put({ key: 'featured', data });
-  };
-
-  const addBanner = useCallback((b: Omit<BannerItem, 'id'>) => {
-    setBanners((prev) => { const next = [...prev, { ...b, id: Date.now().toString() }]; saveBanners(next); return next; });
-  }, []);
-  const updateBanner = useCallback((id: string, changes: Partial<BannerItem>) => {
-    setBanners((prev) => { const next = prev.map((b) => (b.id === id ? { ...b, ...changes } : b)); saveBanners(next); return next; });
-  }, []);
-  const deleteBanner = useCallback((id: string) => {
-    setBanners((prev) => { const next = prev.filter((b) => b.id !== id); saveBanners(next); return next; });
+  // Listen for storage changes from admin panel
+  useEffect(() => {
+    const handler = () => {
+      setTicker(get(KEYS.ticker, defaultTicker));
+      setNews(get(KEYS.news, defaultNews));
+      setEvents(get(KEYS.events, defaultEvents));
+      setMarket(get(KEYS.market, defaultMarket));
+      setPwa(get(KEYS.pwa, defaultPWA));
+    };
+    window.addEventListener('storage', handler);
+    return () => window.removeEventListener('storage', handler);
   }, []);
 
-  const addAnnouncement = useCallback((text: string) => {
-    setAnnouncements((prev) => { const next = [...prev, { id: Date.now().toString(), text, active: true }]; saveAnnouncements(next); return next; });
-  }, []);
-  const updateAnnouncement = useCallback((id: string, changes: Partial<Announcement>) => {
-    setAnnouncements((prev) => { const next = prev.map((a) => (a.id === id ? { ...a, ...changes } : a)); saveAnnouncements(next); return next; });
-  }, []);
-  const deleteAnnouncement = useCallback((id: string) => {
-    setAnnouncements((prev) => { const next = prev.filter((a) => a.id !== id); saveAnnouncements(next); return next; });
-  }, []);
-
-  const updateSplashConfig = useCallback((changes: Partial<SplashConfig>) => {
-    setSplashConfig((prev) => { const next = { ...prev, ...changes }; saveSplash(next); return next; });
-  }, []);
-
-  const addFeaturedStreamer = useCallback((s: Omit<FeaturedStreamer, 'id'>) => {
-    setFeaturedStreamers((prev) => { const next = [...prev, { ...s, id: Date.now().toString() }]; saveFeatured(next); return next; });
-  }, []);
-  const updateFeaturedStreamer = useCallback((id: string, changes: Partial<FeaturedStreamer>) => {
-    setFeaturedStreamers((prev) => { const next = prev.map((s) => (s.id === id ? { ...s, ...changes } : s)); saveFeatured(next); return next; });
-  }, []);
-  const deleteFeaturedStreamer = useCallback((id: string) => {
-    setFeaturedStreamers((prev) => { const next = prev.filter((s) => s.id !== id); saveFeatured(next); return next; });
+  const refresh = useCallback(() => {
+    setTicker(get(KEYS.ticker, defaultTicker));
+    setNews(get(KEYS.news, defaultNews));
+    setEvents(get(KEYS.events, defaultEvents));
+    setMarket(get(KEYS.market, defaultMarket));
+    setPwa(get(KEYS.pwa, defaultPWA));
   }, []);
 
   return (
-    <ContentContext.Provider value={{
-      banners, announcements, splashConfig, featuredStreamers,
-      addBanner, updateBanner, deleteBanner,
-      addAnnouncement, updateAnnouncement, deleteAnnouncement,
-      updateSplashConfig,
-      addFeaturedStreamer, updateFeaturedStreamer, deleteFeaturedStreamer,
-    }}>
+    <ContentContext.Provider value={{ ticker, news, events, market, pwa, refresh }}>
       {children}
     </ContentContext.Provider>
   );
@@ -181,3 +109,4 @@ export function useContent() {
 }
 
 export default ContentContext;
+export { KEYS, defaultTicker, defaultNews, defaultEvents, defaultMarket, defaultPWA };

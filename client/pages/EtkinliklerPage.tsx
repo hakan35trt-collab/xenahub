@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { Calendar, Clock, MapPin, Trophy } from 'lucide-react';
 import TopBar from '../components/TopBar';
 import { useAuth } from '../context/AuthContext';
+import { useContent } from '../context/ContentContext';
 
 interface Event {
   id: string;
@@ -38,10 +39,12 @@ const STORAGE_KEY = 'xenahub_registered_events';
 export default function EtkinliklerPage() {
   const [activeFilter, setActiveFilter] = useState('Tumu');
   const [registeredIds, setRegisteredIds] = useState<Set<string>>(new Set());
-  const [eventParticipants, setEventParticipants] = useState<Record<string, number>>(
-    Object.fromEntries(EVENTS.map(e => [e.id, e.participants]))
-  );
   const { isLoggedIn } = useAuth();
+  const { events: adminEvents } = useContent();
+  const visibleEvents = adminEvents.filter((e: any) => e.active);
+  const [eventParticipants, setEventParticipants] = useState<Record<string, number>>(() =>
+    Object.fromEntries((adminEvents.length ? adminEvents : EVENTS).map((e: any) => [e.id, e.participants]))
+  );
 
   // Load from localStorage
   useEffect(() => {
@@ -67,7 +70,7 @@ export default function EtkinliklerPage() {
       alert('Katilmak icin giris yapmalisiniz.');
       return;
     }
-    const event = EVENTS.find(e => e.id === id);
+    const event = visibleEvents.find((e: any) => e.id === id);
     if (!event) return;
 
     const nextIds = new Set(registeredIds);
@@ -88,7 +91,7 @@ export default function EtkinliklerPage() {
     persist(nextIds, nextParts);
   };
 
-  const filtered = EVENTS.filter((e) => {
+  const filtered = visibleEvents.filter((e: any) => {
     if (activeFilter === 'Tumu') return true;
     return TYPE_CONFIG[e.type]?.label === activeFilter;
   });
@@ -98,7 +101,7 @@ export default function EtkinliklerPage() {
       <TopBar />
       <div className="px-4 pt-3 pb-2 safe-top">
         <h1 className="text-2xl font-extrabold text-white">Etkinlikler</h1>
-        <p className="text-[13px] text-xena-muted mt-0.5">{EVENTS.length} yaklasan etkinlik</p>
+        <p className="text-[13px] text-xena-muted mt-0.5">{visibleEvents.length} yaklasan etkinlik</p>
         <div className="flex gap-2 overflow-x-auto no-scrollbar mt-3 pb-1">
           {FILTERS.map((f) => (
             <button
@@ -168,3 +171,5 @@ export default function EtkinliklerPage() {
     </div>
   );
 }
+
+

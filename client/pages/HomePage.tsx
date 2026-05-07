@@ -5,8 +5,8 @@ import { useContent } from '../context/ContentContext';
 import TopBar from '../components/TopBar';
 
 function MarqueeBar() {
-  const { announcements } = useContent();
-  const active = announcements.filter((a) => a.active);
+  const { ticker } = useContent();
+  const active = ticker.filter((a) => a.active);
   if (!active.length) return null;
   const text = active.map((a) => a.text).join('  ⚡  ');
   return (
@@ -19,7 +19,7 @@ function MarqueeBar() {
 }
 
 function StreamerCarousel() {
-  const { featuredStreamers } = useContent();
+  const featuredStreamers = [] as any[];
   const [activeIdx, setActiveIdx] = useState(0);
   const items = featuredStreamers.filter((s) => s.active);
   const autoRef = useRef<NodeJS.Timeout | null>(null);
@@ -85,7 +85,7 @@ function StreamerCarousel() {
 }
 
 function BannerCarousel() {
-  const { banners } = useContent();
+  const banners = [] as any[];
   const [idx, setIdx] = useState(0);
   useEffect(() => {
     if (banners.length <= 1) return;
@@ -206,6 +206,7 @@ function EventCard({ item }: { item: EventItem }) {
 }
 
 export default function HomePage() {
+  const { news, events } = useContent();
   return (
     <div className="min-h-dvh bg-xena-bg pb-20">
       <TopBar />
@@ -233,7 +234,7 @@ export default function HomePage() {
             <h2 className="text-base font-extrabold text-white">Etkinlikler</h2>
           </div>
           <div className="flex gap-3 overflow-x-auto no-scrollbar -mx-4 px-4">
-            {EVENTS.map((e) => <EventCard key={e.id} item={e} />)}
+            {events.filter(e => e.active).slice(0,4).map((e) => <EventCard key={e.id} item={e as any} />)}
           </div>
         </section>
 
@@ -243,9 +244,11 @@ export default function HomePage() {
             <div className="w-7 h-7 rounded-lg bg-xena-info/10 flex items-center justify-center"><FileText size={14} className="text-xena-info" /></div>
             <h2 className="text-base font-extrabold text-white">Haberler</h2>
           </div>
-          {NEWS.map((n) => <NewsCard key={n.id} item={n} />)}
+          {news.filter(n => n.active).slice(0,5).map((n) => <NewsCard key={n.id} item={n as any} />)}
         </section>
       </div>
     </div>
   );
 }
+
+

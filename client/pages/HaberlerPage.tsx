@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Heart, Clock, ChevronDown, ChevronUp, FileText } from 'lucide-react';
 import TopBar from '../components/TopBar';
+import { useContent } from '../context/ContentContext';
 
 interface NewsItem {
   id: string;
@@ -67,8 +68,9 @@ function NewsCard({ item }: { item: NewsItem }) {
 
 export default function HaberlerPage() {
   const [activeFilter, setActiveFilter] = useState('Tümü');
+  const { news } = useContent();
 
-  const filtered = NEWS.filter((n) => {
+  const filtered = news.filter((n: any) => n.active).filter((n: any) => {
     if (activeFilter === 'Tümü') return true;
     return CATEGORY_CONFIG[n.category].label === activeFilter;
   });
@@ -114,3 +116,4 @@ export default function HaberlerPage() {
     </div>
   );
 }
+

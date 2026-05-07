@@ -9,10 +9,16 @@ interface ProfileModalProps {
 }
 
 export default function ProfileModal({ visible, onClose }: ProfileModalProps) {
-  const { currentUser, logout, updateProfile, isLoggedIn } = useAuth();
+  const { currentUser, logout, updateProfile, updateAvatar, removeAvatar, isLoggedIn } = useAuth();
   const [editing, setEditing] = useState(false);
   const [displayName, setDisplayName] = useState(currentUser?.displayName || '');
   const [username, setUsername] = useState(currentUser?.username || '');
+  const handleAvatarUpload = (file?: File) => {
+    if (!file || !currentUser) return;
+    const reader = new FileReader();
+    reader.onload = () => updateAvatar(currentUser.id, String(reader.result));
+    reader.readAsDataURL(file);
+  };
 
   if (!visible || !isLoggedIn || !currentUser) return null;
 
@@ -54,6 +60,8 @@ export default function ProfileModal({ visible, onClose }: ProfileModalProps) {
                   <span style={{ color: roleColor }}>{currentUser.username[0].toUpperCase()}</span>
                 )}
               </div>
+              <label className="text-xs font-bold text-xena-primary mb-3 cursor-pointer bg-xena-primary/10 px-3 py-1 rounded-full">Resim Ekle<input type="file" accept="image/*" className="hidden" onChange={(e) => handleAvatarUpload(e.target.files?.[0])} /></label>
+              {currentUser.avatarUrl && <button onClick={() => removeAvatar(currentUser.id)} className="text-[10px] text-xena-danger mb-2">Resmi Kaldir</button>}
               <h2 className="text-lg font-extrabold text-white">{currentUser.displayName || currentUser.username}</h2>
               <div className="flex items-center gap-2 mt-1">
                 <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ background: `${roleColor}22`, color: roleColor }}>
@@ -132,3 +140,7 @@ export default function ProfileModal({ visible, onClose }: ProfileModalProps) {
     </AnimatePresence>
   );
 }
+
+
+
+

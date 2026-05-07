@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Shield, Search, Star, Package, Zap, Trophy, Diamond } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { useMarket } from '../context/MarketContext';
+import { useContent } from '../context/ContentContext';
 import { useWallet } from '../context/WalletContext';
 import TopBar from '../components/TopBar';
 
@@ -28,7 +28,8 @@ const CAT_ICONS: Record<string, React.ReactNode> = {
 
 export default function MarketPage() {
   const { currentUser, isLoggedIn } = useAuth();
-  const { products } = useMarket();
+  const { market } = useContent();
+  const products = market.map((p: any) => ({ ...p, priceAltin: p.price, coinsAmount: p.category === 'paket' ? parseInt(String(p.description).replace(/\\D/g, '')) || 0 : 0 }));
   const { getWallet, purchaseCoins, addCoins } = useWallet();
   const [filter, setFilter] = useState('hepsi');
 
@@ -175,3 +176,4 @@ export default function MarketPage() {
     </div>
   );
 }
+
