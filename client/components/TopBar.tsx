@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import { Bell, Shield, User, RotateCcw, LogOut, Trophy, Crown, MessageCircle } from 'lucide-react';
 import { useAuth, ROLE_COLORS } from '../context/AuthContext';
 import { useNotifications } from '../context/NotificationContext';
@@ -20,6 +21,7 @@ export default function TopBar() {
   const [showNotifications, setShowNotifications] = useState(false);
   const [showWheel, setShowWheel] = useState(false);
 
+  const navigate = useNavigate();
   const spinAvailable = currentUser ? canSpin(currentUser.id) : false;
   const roleColor = currentUser ? ROLE_COLORS[currentUser.role] ?? '#9147ff' : '#9147ff';
 
@@ -36,13 +38,16 @@ export default function TopBar() {
       <div className="flex items-center justify-between px-4 py-2.5 safe-top bg-gradient-to-b from-xena-bg to-xena-card border-b border-white/[0.04]">
         {/* Brand */}
         <div className="flex items-center gap-1">
-          <span className="text-lg font-black text-white tracking-wider">MOD</span>
+          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-xena-primary to-xena-accent flex items-center justify-center mr-1">
+            <span className="text-sm font-black text-white">X</span>
+          </div>
+          <span className="text-lg font-black text-white tracking-wider">XENA</span>
           <motion.span
             className="text-lg font-black text-xena-primary tracking-wider"
             animate={{ opacity: [0.6, 1, 0.6] }}
             transition={{ duration: 2, repeat: Infinity }}
           >
-            CLUB
+            HUB
           </motion.span>
           <div className="flex items-center gap-1 ml-2 bg-xena-success/10 rounded-full px-2 py-0.5">
             <div className="w-1.5 h-1.5 rounded-full bg-xena-success animate-pulse" />
@@ -96,7 +101,9 @@ export default function TopBar() {
           {isMod && (
             <motion.button
               whileTap={{ scale: 0.85 }}
+              onClick={() => navigate('/admin')}
               className="w-9 h-9 rounded-full bg-xena-primary/10 border border-xena-primary/20 flex items-center justify-center"
+              title="Admin Panel"
             >
               <Shield size={16} className="text-xena-primary" />
             </motion.button>

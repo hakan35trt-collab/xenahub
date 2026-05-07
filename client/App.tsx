@@ -17,6 +17,7 @@ const HaberlerPage = lazy(() => import('./pages/HaberlerPage'));
 const EtkinliklerPage = lazy(() => import('./pages/EtkinliklerPage'));
 const MarketPage = lazy(() => import('./pages/MarketPage'));
 const DestekPage = lazy(() => import('./pages/DestekPage'));
+const AdminPage = lazy(() => import('./pages/AdminPage'));
 const Layout = lazy(() => import('./components/Layout'));
 const PWAInstallBanner = lazy(() => import('./components/PWAInstallBanner'));
 const UpdateBanner = lazy(() => import('./components/UpdateBanner'));
@@ -25,10 +26,10 @@ const SplashScreen = lazy(() => import('./components/SplashScreen'));
 
 function Router() {
   const { isMobile, isStandalone } = useApp();
-  const showApp = isMobile || isStandalone;
+  const forceApp = new URLSearchParams(window.location.search).get('app') === '1';
+  const showApp = isMobile || isStandalone || forceApp;
 
   useEffect(() => {
-    // Remove native splash
     const splash = document.getElementById('splash');
     if (splash) {
       splash.style.opacity = '0';
@@ -53,6 +54,7 @@ function Router() {
           <Route path="/etkinlikler" element={<EtkinliklerPage />} />
           <Route path="/market" element={<MarketPage />} />
           <Route path="/destek" element={<DestekPage />} />
+          <Route path="/admin" element={<AdminPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Layout>
