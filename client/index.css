@@ -230,3 +230,7 @@ html, body, #root {
   box-sizing: border-box;
 }
 
+
+html, body { overscroll-behavior-x: none !important; touch-action: pan-y; }
+#root { overflow-x: clip !important; }
+
