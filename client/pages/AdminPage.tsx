@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -39,13 +39,13 @@ const defaultTicker: TickerItem[] = [
 ];
 
 const defaultNews: NewsItem[] = [
-  { id: 'n1', title: 'XENAHUB Mayis Destek Programi Basladi', summary: 'Yeni yayıncilara ozel mentorluk ve ekipman destegi.', content: 'Bu ay baslattigimiz yeni destek programiyla 100 yeni yayınciya mentorluk, ekipman ve reklam destegi saglayacagiz.', date: '6 Mayis 2026', category: 'platform', active: true },
+  { id: 'n1', title: 'XENAHUB Mayis Destek Programi Basladi', summary: 'Yeni yayncilara ozel mentorluk ve ekipman destegi.', content: 'Bu ay baslattigimiz yeni destek programiyla 100 yeni yaynciya mentorluk, ekipman ve reklam destegi saglayacagiz.', date: '6 Mayis 2026', category: 'platform', active: true },
   { id: 'n2', title: 'Valorant Episode 9 Guncellemesi', summary: 'Yeni harita, yeni ajan ve buyuk meta degisiklikleri.', content: 'Valorant\'in en buyuk guncellemelerinden biri olan Episode 9 ile birlikte Pearl haritasi yenilendi.', date: '5 Mayis 2026', category: 'gaming', active: true },
 ];
 
 const defaultEvents: EventItem[] = [
   { id: 'e1', title: 'Valorant Turkiye Turnuvasi', description: 'Aylik Valorant turnuvamiz basliyor!', date: '18 Mayis 2026', time: '20:00', location: 'Online', type: 'tournament', prize: '5.000 TL', participants: 128, maxParticipants: 256, active: true },
-  { id: 'e2', title: 'Istanbul Oyuncu Bulusmasi', description: 'Sürpriz konuklar ve hediyeler!', date: '25 Mayis 2026', time: '14:00', location: 'Istanbul, Kadikoy', type: 'meetup', participants: 45, maxParticipants: 100, active: true },
+  { id: 'e2', title: 'Istanbul Oyuncu Bulusmasi', description: 'Srpriz konuklar ve hediyeler!', date: '25 Mayis 2026', time: '14:00', location: 'Istanbul, Kadikoy', type: 'meetup', participants: 45, maxParticipants: 100, active: true },
 ];
 
 const defaultMarket: MarketItem[] = [
@@ -234,7 +234,7 @@ function NewsManager() {
             <Toggle active={item.active} onToggle={() => setItems(prev => prev.map(i => i.id === item.id ? { ...i, active: !i.active } : i))} />
             <div className="flex-1 min-w-0">
               <div className="text-sm font-bold truncate">{item.title}</div>
-              <div className="text-[10px] text-xena-muted">{item.date} · {item.category}</div>
+              <div className="text-[10px] text-xena-muted">{item.date}  {item.category}</div>
             </div>
             <button onClick={() => setupForm(item)} className="text-xena-primary/60 hover:text-xena-primary p-1"><Edit3 size={14} /></button>
             <button onClick={() => setItems(prev => prev.filter(i => i.id !== item.id))} className="text-xena-danger/60 hover:text-xena-danger p-1"><Trash2 size={14} /></button>
@@ -306,7 +306,7 @@ function EventManager() {
             <Toggle active={item.active} onToggle={() => setItems(prev => prev.map(i => i.id === item.id ? { ...i, active: !i.active } : i))} />
             <div className="flex-1 min-w-0">
               <div className="text-sm font-bold truncate">{item.title}</div>
-              <div className="text-[10px] text-xena-muted">{item.date} · {item.time} · {item.location}</div>
+              <div className="text-[10px] text-xena-muted">{item.date}  {item.time}  {item.location}</div>
             </div>
             {item.prize && <span className="text-[10px] font-bold text-xena-gold bg-xena-gold/10 px-2 py-0.5 rounded">{item.prize}</span>}
             <button onClick={() => setupForm(item)} className="text-xena-primary/60 hover:text-xena-primary p-1"><Edit3 size={14} /></button>
@@ -327,7 +327,7 @@ function BannerManager() {
   const setup = (item?: BannerItem) => { setEditing(item?.id || 'new'); setForm(item ? { ...item } : { tag: 'XENAHUB', title: '', subtitle: '', initial: 'X', gradientStart: '#1a0a3a', gradientMid: '#9147ff', gradientEnd: '#050509', active: true, position: 'Ana Banner' }); };
   const uploadImage = (file?: File) => { if (!file) return; const r = new FileReader(); r.onload = () => setForm(prev => ({ ...prev, image: String(r.result) })); r.readAsDataURL(file); };
   const save = () => { if (!form.title?.trim()) return; if (editing === 'new') setItems(prev => [...prev, { ...(form as BannerItem), id: Date.now().toString() }]); else setItems(prev => prev.map(i => i.id === editing ? { ...i, ...form } as BannerItem : i)); setEditing(null); };
-  return <div className="space-y-3"><div className="flex items-center justify-between"><h3 className="text-sm font-bold text-xena-muted uppercase tracking-wider">Banner Yonetimi</h3><button onClick={() => setup()} className="bg-xena-primary/15 text-xena-primary px-3 py-1.5 rounded-lg text-xs font-bold">Yeni</button></div>{editing && <div className="glass rounded-2xl p-4 border border-xena-primary/20"><Input label="Tag" value={form.tag || ''} onChange={v => setForm({ ...form, tag: v })} /><Select label="Banner Yeri" value={form.position || 'Ana Banner'} onChange={v => setForm({ ...form, position: v })} options={['Ana Banner', 'Ikinci Banner']} /><Input label="Baslik" value={form.title || ''} onChange={v => setForm({ ...form, title: v })} /><Input label="Alt Baslik" value={form.subtitle || ''} onChange={v => setForm({ ...form, subtitle: v })} /><Input label="Harf" value={form.initial || ''} onChange={v => setForm({ ...form, initial: v })} /><label className="block bg-xena-primary/15 text-xena-primary text-xs font-bold px-3 py-2 rounded-xl mb-3 cursor-pointer">Banner Resmi Ekle<input type="file" accept="image/*" className="hidden" onChange={(e) => uploadImage(e.target.files?.[0])} /></label>{form.image && <img src={form.image} className="w-full h-28 object-cover rounded-xl mb-3" />}<div className="grid grid-cols-3 gap-2"><Input label="Renk 1" value={form.gradientStart || ''} onChange={v => setForm({ ...form, gradientStart: v })} /><Input label="Renk 2" value={form.gradientMid || ''} onChange={v => setForm({ ...form, gradientMid: v })} /><Input label="Renk 3" value={form.gradientEnd || ''} onChange={v => setForm({ ...form, gradientEnd: v })} /></div><button onClick={save} className="w-full bg-xena-primary text-white py-2.5 rounded-xl font-bold text-sm mt-2">Kaydet</button></div>}{items.map(item => <div key={item.id} className="flex items-center gap-3 glass rounded-xl p-3"><Toggle active={item.active} onToggle={() => setItems(prev => prev.map(i => i.id === item.id ? { ...i, active: !i.active } : i))} />{item.image && <img src={item.image} className="w-12 h-10 object-cover rounded-lg" />}<div className="flex-1"><div className="text-sm font-bold">{item.title}</div><div className="text-[10px] text-xena-muted">{item.position || 'Ana Banner'} � {item.tag}</div></div><button onClick={() => setup(item)} className="text-xena-primary p-1"><Edit3 size={14} /></button><button onClick={() => setItems(prev => prev.filter(i => i.id !== item.id))} className="text-xena-danger p-1"><Trash2 size={14} /></button></div>)}</div>;
+  return <div className="space-y-3"><div className="flex items-center justify-between"><h3 className="text-sm font-bold text-xena-muted uppercase tracking-wider">Banner Yonetimi</h3><button onClick={() => setup()} className="bg-xena-primary/15 text-xena-primary px-3 py-1.5 rounded-lg text-xs font-bold">Yeni</button></div>{editing && <div className="glass rounded-2xl p-4 border border-xena-primary/20"><Input label="Tag" value={form.tag || ''} onChange={v => setForm({ ...form, tag: v })} /><Select label="Banner Yeri" value={form.position || 'Ana Banner'} onChange={v => setForm({ ...form, position: v })} options={['Ana Banner', 'Ikinci Banner']} /><Input label="Baslik" value={form.title || ''} onChange={v => setForm({ ...form, title: v })} /><Input label="Alt Baslik" value={form.subtitle || ''} onChange={v => setForm({ ...form, subtitle: v })} /><Input label="Harf" value={form.initial || ''} onChange={v => setForm({ ...form, initial: v })} /><label className="block bg-xena-primary/15 text-xena-primary text-xs font-bold px-3 py-2 rounded-xl mb-3 cursor-pointer">Banner Resmi Ekle<input type="file" accept="image/*" className="hidden" onChange={(e) => uploadImage(e.target.files?.[0])} /></label>{form.image && <img src={form.image} className="w-full h-28 object-cover rounded-xl mb-3" />}<div className="grid grid-cols-3 gap-2"><Input label="Renk 1" value={form.gradientStart || ''} onChange={v => setForm({ ...form, gradientStart: v })} /><Input label="Renk 2" value={form.gradientMid || ''} onChange={v => setForm({ ...form, gradientMid: v })} /><Input label="Renk 3" value={form.gradientEnd || ''} onChange={v => setForm({ ...form, gradientEnd: v })} /></div><button onClick={save} className="w-full bg-xena-primary text-white py-2.5 rounded-xl font-bold text-sm mt-2">Kaydet</button></div>}{items.map(item => <div key={item.id} className="flex items-center gap-3 glass rounded-xl p-3"><Toggle active={item.active} onToggle={() => setItems(prev => prev.map(i => i.id === item.id ? { ...i, active: !i.active } : i))} />{item.image && <img src={item.image} className="w-12 h-10 object-cover rounded-lg" />}<div className="flex-1"><div className="text-sm font-bold">{item.title}</div><div className="text-[10px] text-xena-muted">{item.position || 'Ana Banner'}  {item.tag}</div></div><button onClick={() => setup(item)} className="text-xena-primary p-1"><Edit3 size={14} /></button><button onClick={() => setItems(prev => prev.filter(i => i.id !== item.id))} className="text-xena-danger p-1"><Trash2 size={14} /></button></div>)}</div>;
 }
 function StreamerManager() {
   const [items, setItems] = useState<StreamerItem[]>(() => get(S.streamers, defaultStreamers));
@@ -396,7 +396,7 @@ function MarketManager() {
             <Toggle active={item.active} onToggle={() => setItems(prev => prev.map(i => i.id === item.id ? { ...i, active: !i.active } : i))} />
             <div className="flex-1 min-w-0">
               <div className="text-sm font-bold truncate">{item.name}</div>
-              <div className="text-[10px] text-xena-muted">{item.price} Altin · {item.category}</div>
+              <div className="text-[10px] text-xena-muted">{item.price} Altin  {item.category}</div>
             </div>
             {item.hot && <span className="text-[10px] font-bold bg-xena-danger/15 text-xena-danger px-1.5 py-0.5 rounded">POPULER</span>}
             <button onClick={() => setupForm(item)} className="text-xena-primary/60 hover:text-xena-primary p-1"><Edit3 size={14} /></button>
@@ -451,7 +451,7 @@ export default function AdminPage() {
             <Shield size={18} className="text-xena-primary" />
             Admin Panel
           </h1>
-          <p className="text-xs text-xena-muted">{currentUser?.username} — {currentUser?.role}</p>
+          <p className="text-xs text-xena-muted">{currentUser?.username}  {currentUser?.role}</p>
         </div>
       </div>
 
@@ -571,6 +571,7 @@ export default function AdminPage() {
     </div>
   );
 }
+
 
 
 
