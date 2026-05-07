@@ -10,7 +10,7 @@ interface NewsItem {
   summary: string;
   content: string;
   date: string;
-  category: 'platform' | 'gaming' | 'esports' | 'update';
+  category: string;
   readTime: string;
   isNew?: boolean;
   likes: number;
