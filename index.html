@@ -37,6 +37,29 @@
     <meta name="twitter:description" content="Türkiye'nin en büyük yayıncı ve oyun topluluğu." />
     <meta name="twitter:image" content="/icons/icon-512x512.png" />
 
+        <script>
+      (function() {
+        try {
+          var raw = localStorage.getItem('xenahub_admin_pwa');
+          if (!raw) return;
+          var pwa = JSON.parse(raw);
+          if (pwa.name) document.title = pwa.name;
+          if (pwa.name) document.querySelector('meta[name="application-name"]')?.setAttribute('content', pwa.name);
+          if (pwa.shortName) document.querySelector('meta[name="apple-mobile-web-app-title"]')?.setAttribute('content', pwa.shortName);
+          if (pwa.themeColor) document.querySelectorAll('meta[name="theme-color"]').forEach(function(m){ m.setAttribute('content', pwa.themeColor); });
+          if (pwa.icon) {
+            var apple = document.querySelector('link[rel="apple-touch-icon"]') || document.createElement('link');
+            apple.setAttribute('rel', 'apple-touch-icon');
+            apple.setAttribute('href', pwa.icon);
+            if (!apple.parentNode) document.head.appendChild(apple);
+            var icon = document.querySelector('link[rel="icon"]') || document.createElement('link');
+            icon.setAttribute('rel', 'icon');
+            icon.setAttribute('href', pwa.icon);
+            if (!icon.parentNode) document.head.appendChild(icon);
+          }
+        } catch(e) {}
+      })();
+    </script>
     <!-- PWA Manifest -->
     <link rel="manifest" href="/manifest.json" />
 
@@ -121,3 +144,4 @@
     <noscript>Bu uygulama JavaScript gerektirir.</noscript>
   </body>
 </html>
+

@@ -13,6 +13,7 @@ interface TickerItem { id: string; text: string; active: boolean; }
 interface NewsItem { id: string; title: string; summary: string; content: string; date: string; category: string; active: boolean; }
 interface EventItem { id: string; title: string; description: string; date: string; time: string; location: string; type: string; prize?: string; participants: number; maxParticipants?: number; active: boolean; }
 interface MarketItem { id: string; name: string; description: string; price: number; category: string; active: boolean; hot?: boolean; limited?: boolean; color: string; }
+interface PWASettings { name: string; shortName: string; themeColor: string; backgroundColor: string; icon?: string; }
 
 /* ========== Storage Helpers ========== */
 const get = <T,>(key: string, fallback: T): T => { try { const raw = localStorage.getItem(key); return raw ? JSON.parse(raw) : fallback; } catch { return fallback; } };
@@ -24,6 +25,7 @@ const S = {
   events: 'xenahub_admin_events',
   market: 'xenahub_admin_market',
   users: 'xenahub_admin_users',
+  pwa: 'xenahub_admin_pwa',
 };
 
 const defaultTicker: TickerItem[] = [
@@ -48,6 +50,48 @@ const defaultMarket: MarketItem[] = [
   { id: 'm3', name: 'VIP Uyelik 7 Gun', description: '7 gunluk VIP ayricaliklari', price: 800, category: 'uyelik', active: true, limited: true, color: '#00b3ff' },
 ];
 
+
+const defaultPWA: PWASettings = { name: 'XENAHUB', shortName: 'XENAHUB', themeColor: '#0a0a0f', backgroundColor: '#0a0a0f' };
+
+function updatePwaMeta(settings: PWASettings) {
+  document.title = settings.name;
+  document.querySelector('meta[name="application-name"]')?.setAttribute('content', settings.name);
+  document.querySelector('meta[name="apple-mobile-web-app-title"]')?.setAttribute('content', settings.shortName);
+  document.querySelector('meta[name="theme-color"]')?.setAttribute('content', settings.themeColor);
+  window.dispatchEvent(new CustomEvent('xenahub:content-updated'));
+}
+
+function PWAManager() {
+  const [settings, setSettings] = useState<PWASettings>(() => get(S.pwa, defaultPWA));
+  useEffect(() => { set(S.pwa, settings); updatePwaMeta(settings); }, [settings]);
+  const handleIcon = (file?: File) => {
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => setSettings(prev => ({ ...prev, icon: String(reader.result) }));
+    reader.readAsDataURL(file);
+  };
+  return (
+    <div className="space-y-3">
+      <h3 className="text-sm font-bold text-xena-muted uppercase tracking-wider mb-2">PWA Uygulama Ayarlari</h3>
+      <div className="glass rounded-2xl p-4 border border-xena-primary/20">
+        <div className="flex items-center gap-4 mb-4">
+          <div className="w-16 h-16 rounded-2xl bg-xena-primary/20 flex items-center justify-center overflow-hidden border border-xena-primary/30">
+            {settings.icon ? <img src={settings.icon} className="w-full h-full object-cover" /> : <span className="text-2xl font-black text-xena-primary">X</span>}
+          </div>
+          <label className="bg-xena-primary text-white px-4 py-2 rounded-xl text-sm font-bold active:scale-95 cursor-pointer">
+            Icon Yukle
+            <input type="file" accept="image/*" className="hidden" onChange={(e) => handleIcon(e.target.files?.[0])} />
+          </label>
+        </div>
+        <Input label="Uygulama Adi" value={settings.name} onChange={v => setSettings(prev => ({ ...prev, name: v }))} />
+        <Input label="Kisa Ad" value={settings.shortName} onChange={v => setSettings(prev => ({ ...prev, shortName: v }))} />
+        <Input label="Tema Rengi" value={settings.themeColor} onChange={v => setSettings(prev => ({ ...prev, themeColor: v }))} />
+        <Input label="Arka Plan Rengi" value={settings.backgroundColor} onChange={v => setSettings(prev => ({ ...prev, backgroundColor: v }))} />
+        <p className="text-xs text-xena-muted leading-relaxed mt-2">Not: PWA ismi/iconu yeni yuklemelerde guncellenir. Eski yuklu uygulamalar icin kaldirip yeniden yuklemek gerekebilir.</p>
+      </div>
+    </div>
+  );
+}
 /* ========== Reusable Components ========== */
 function Input({ label, value, onChange, type = 'text', placeholder = '' }: { label: string; value: string; onChange: (v: string) => void; type?: string; placeholder?: string }) {
   return (
@@ -451,6 +495,8 @@ export default function AdminPage() {
             <EventManager />
             <div className="border-t border-white/[0.06] pt-4" />
             <MarketManager />
+            <div className='border-t border-white/[0.06] pt-4' />
+            <PWAManager />
           </motion.div>
         )}
 
@@ -492,4 +538,5 @@ export default function AdminPage() {
     </div>
   );
 }
+
 
