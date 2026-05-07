@@ -219,3 +219,14 @@
   will-change: transform;
 }
 
+
+html, body, #root {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden !important;
+  position: relative;
+}
+* {
+  box-sizing: border-box;
+}
+
