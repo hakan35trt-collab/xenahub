@@ -78,8 +78,11 @@ function PWAManager() {
   const savePWA = () => { set(S.pwa, settings); updatePwaMeta(settings); alert("PWA ayarlari kaydedildi"); };
   const handleIcon = (file?: File) => {
     if (!file) return;
+    if (!file.type.startsWith('image/')) { alert('Sadece resim yukleyin'); return; }
+    if (file.size > 700 * 1024) { alert('Icon dosyasi cok buyuk. 700KB altinda PNG/JPG yukleyin.'); return; }
     const reader = new FileReader();
-    reader.onload = () => setSettings(prev => ({ ...prev, icon: String(reader.result) }));
+    reader.onerror = () => alert('Icon okunamadi');
+    reader.onload = () => { try { setSettings(prev => ({ ...prev, icon: String(reader.result) })); } catch { alert('Icon yuklenemedi'); } };
     reader.readAsDataURL(file);
   };
   return (
@@ -593,6 +596,7 @@ export default function AdminPage() {
     </div>
   );
 }
+
 
 
 
