@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "node scripts/create-icons.mjs && tsc && vite build",
+    "build": "node scripts/create-icons.cjs && tsc && vite build",
     "preview": "vite preview",
     "start": "node server/dist/index.js",
     "server:build": "tsc -p tsconfig.server.json",
