@@ -4,9 +4,11 @@ import { useNavigate } from 'react-router-dom';
 import {
   ArrowLeft, Shield, Users, MessageSquare, Ticket, TrendingUp, Ban,
   Crown, Star, CheckCircle, XCircle, Plus, Trash2, Edit3, Save, X,
-  Megaphone, ShoppingBag, Newspaper, Calendar, AlertTriangle, Eye, EyeOff, ChevronRight
+  Megaphone, ShoppingBag, Newspaper, Calendar, AlertTriangle, Eye, EyeOff, ChevronRight,
+  Send
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { useChat } from '../context/ChatContext';
 
 /* ========== Shared Types ========== */
 interface TickerItem { id: string; text: string; active: boolean; }
@@ -575,8 +577,10 @@ export default function AdminPage() {
         {activeTab === 'users' && (
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-3">
             <Card>
-              <h3 className="text-sm font-bold text-xena-muted uppercase tracking-wider mb-3">Sohbet Yonetimi</h3>
-              <button onClick={() => { indexedDB.deleteDatabase('xenahub_chat'); localStorage.setItem('xenahub_chat_clear_signal', Date.now().toString()); alert('Sohbet temizlendi. Kullanici sayfayi yenileyince bos gorunecek.'); }} className="w-full bg-xena-danger/15 text-xena-danger border border-xena-danger/30 py-3 rounded-xl font-bold text-sm mb-4">Tum Sohbeti Temizle</button>
+              <ChatSettings />
+            </Card>
+            <div className='border-t border-white/[0.06] pt-4' />
+            <Card>
               <h3 className="text-sm font-bold text-xena-muted uppercase tracking-wider mb-3">Sistem Kullanicilari</h3>
               <div className="space-y-2">
                 {[
@@ -613,16 +617,50 @@ export default function AdminPage() {
   );
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+function ChatSettings() {
+  const { welcomeMessage, setWelcomeMessage, clearChat } = useChat();
+  const [text, setText] = useState(welcomeMessage);
+  const [saved, setSaved] = useState(false);
+  
+  const handleSave = () => {
+    if (!text.trim()) return;
+    setWelcomeMessage(text.trim());
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2000);
+  };
+  
+  return (
+    <div className="space-y-4">
+      <h3 className="text-sm font-bold text-xena-muted uppercase tracking-wider">Sohbet Yonetimi</h3>
+      
+      <div className="space-y-2">
+        <label className="text-xs font-bold text-white">Hosgeldin Mesaji</label>
+        <input 
+          type="text" 
+          value={text} 
+          onChange={(e) => setText(e.target.value)} 
+          placeholder="Sohbet odasina hos geldiniz!"
+          className="w-full bg-xena-surface border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white placeholder-xena-muted outline-none focus:border-xena-primary"
+        />
+        
+        <div className="flex gap-2">
+          <button 
+            onClick={handleSave} 
+            className="flex-1 bg-xena-primary text-white py-2 rounded-xl font-bold text-sm flex items-center justify-center gap-2"
+          >
+            <Save size={14} /> {saved ? 'Kaydedildi!' : 'Kaydet'}
+          </button>
+        </div>
+      </div>
+      
+      <div className="border-t border-white/[0.06] pt-4">
+        <button 
+          onClick={() => { if (confirm('Sohbet tamamen temizlensin mi?')) clearChat(); }} 
+          className="w-full bg-xena-danger/15 text-xena-danger border border-xena-danger/30 py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2"
+        >
+          <Trash2 size={14} /> Tum Sohbeti Temizle
+        </button>
+      </div>
+    </div>
+  );
+}
