@@ -5,12 +5,12 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "node scripts/create-icons.cjs && tsc && vite build",
+    "build": "node scripts/create-icons.cjs && npx tsc && vite build",
     "preview": "vite preview",
     "start": "node server/dist/index.js",
-    "server:build": "tsc -p tsconfig.server.json",
+    "server:build": "npx tsc -p tsconfig.server.json",
     "server:dev": "tsx server/index.ts",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "npx tsc --noEmit"
   },
   "dependencies": {
     "@types/mongodb": "^4.0.6",
