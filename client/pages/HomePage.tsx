@@ -108,11 +108,17 @@ function EventCard({ item }: { item: any }) {
 }
 
 export default function HomePage() {
-  const { news, events, refresh } = useContent();
+  const { news, events } = useContent();
   const [pulling, setPulling] = useState(false);
   const startY = React.useRef(0);
   const onTouchStart = (e: React.TouchEvent) => { startY.current = e.touches[0].clientY; };
-  const onTouchEnd = (e: React.TouchEvent) => { if (window.scrollY === 0 && e.changedTouches[0].clientY - startY.current > 80) { setPulling(true); refresh(); setTimeout(() => setPulling(false), 650); } };
+  const onTouchEnd = (e: React.TouchEvent) => { 
+    if (window.scrollY === 0 && e.changedTouches[0].clientY - startY.current > 80) { 
+      setPulling(true); 
+      // Tarayıcıyı yenile
+      setTimeout(() => { window.location.reload(); }, 300);
+    } 
+  };
   return <div className="min-h-dvh bg-xena-bg pb-20" onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>{pulling && <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[100] bg-xena-primary text-white px-4 py-2 rounded-full text-xs font-bold shadow-neon">Yenileniyor...</div>}<TopBar /><MarqueeBar /><div className="space-y-5 mt-4 px-4"><section><BannerCarousel /></section><section className="mx-[-16px] px-4"><div className="flex items-center gap-2 mb-3"><div className="w-7 h-7 rounded-lg bg-xena-gold/10 flex items-center justify-center"><Crown size={14} className="text-xena-gold" /></div><h2 className="text-base font-extrabold text-white">One Cikan Yayincilar</h2></div><StreamerCarousel /></section><section><div className="flex items-center gap-2 mb-3"><div className="w-7 h-7 rounded-lg bg-xena-primary/10 flex items-center justify-center"><Calendar size={14} className="text-xena-primary" /></div><h2 className="text-base font-extrabold text-white">Etkinlikler</h2></div><div className="flex gap-3 overflow-x-auto no-scrollbar -mx-4 px-4">{events.filter(e => e.active).slice(0,4).map(e => <EventCard key={e.id} item={e} />)}</div></section><section><div className="flex items-center gap-2 mb-3"><div className="w-7 h-7 rounded-lg bg-xena-info/10 flex items-center justify-center"><FileText size={14} className="text-xena-info" /></div><h2 className="text-base font-extrabold text-white">Haberler</h2></div>{news.filter(n => n.active).slice(0,5).map(n => <NewsCard key={n.id} item={n} />)}</section></div></div>;
 }
 
