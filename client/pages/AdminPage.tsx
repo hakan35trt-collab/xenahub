@@ -618,9 +618,24 @@ export default function AdminPage() {
 }
 
 function ChatSettings() {
-  const { welcomeMessage, setWelcomeMessage, clearChat } = useChat();
+  const { 
+    welcomeMessage, setWelcomeMessage, clearChat,
+    systemUsers, addSystemUser, removeSystemUser, sendAsSystemUser,
+    botMessages, addBotMessage, removeBotMessage, toggleBotMessage
+  } = useChat();
   const [text, setText] = useState(welcomeMessage);
   const [saved, setSaved] = useState(false);
+  
+  // System User State
+  const [newUserName, setNewUserName] = useState('');
+  const [newUserRole, setNewUserRole] = useState('bot');
+  const [newUserColor, setNewUserColor] = useState('#9147ff');
+  const [selectedUser, setSelectedUser] = useState('');
+  const [systemMessage, setSystemMessage] = useState('');
+  
+  // Bot Message State
+  const [newBotText, setNewBotText] = useState('');
+  const [newBotDelay, setNewBotDelay] = useState(60);
   
   const handleSave = () => {
     if (!text.trim()) return;
@@ -629,10 +644,30 @@ function ChatSettings() {
     setTimeout(() => setSaved(false), 2000);
   };
   
+  const handleAddUser = () => {
+    if (!newUserName.trim()) return;
+    addSystemUser({ name: newUserName, role: newUserRole, color: newUserColor });
+    setNewUserName('');
+  };
+  
+  const handleSendAsSystem = () => {
+    if (!selectedUser || !systemMessage.trim()) return;
+    sendAsSystemUser(selectedUser, systemMessage);
+    setSystemMessage('');
+    alert('Mesaj gonderildi!');
+  };
+  
+  const handleAddBotMessage = () => {
+    if (!newBotText.trim()) return;
+    addBotMessage({ text: newBotText, delay: newBotDelay, enabled: true });
+    setNewBotText('');
+  };
+  
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <h3 className="text-sm font-bold text-xena-muted uppercase tracking-wider">Sohbet Yonetimi</h3>
       
+      {/* Hosgeldin Mesaji */}
       <div className="space-y-2">
         <label className="text-xs font-bold text-white">Hosgeldin Mesaji</label>
         <input 
@@ -642,14 +677,135 @@ function ChatSettings() {
           placeholder="Sohbet odasina hos geldiniz!"
           className="w-full bg-xena-surface border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white placeholder-xena-muted outline-none focus:border-xena-primary"
         />
+        <button 
+          onClick={handleSave} 
+          className="w-full bg-xena-primary text-white py-2 rounded-xl font-bold text-sm flex items-center justify-center gap-2"
+        >
+          <Save size={14} /> {saved ? 'Kaydedildi!' : 'Kaydet'}
+        </button>
+      </div>
+      
+      <div className="border-t border-white/[0.06] pt-4">
+        <h4 className="text-xs font-bold text-white mb-3">Sistem Kullanicilari</h4>
         
-        <div className="flex gap-2">
-          <button 
-            onClick={handleSave} 
-            className="flex-1 bg-xena-primary text-white py-2 rounded-xl font-bold text-sm flex items-center justify-center gap-2"
+        {/* Mevcut Sistem Kullanicilari */}
+        <div className="space-y-2 mb-3">
+          {systemUsers.map(u => (
+            <div key={u.id} className="flex items-center gap-2 glass rounded-lg p-2">
+              <div className="w-3 h-3 rounded-full" style={{ background: u.color }} />
+              <span className="text-sm font-bold flex-1">{u.name}</span>
+              <span className="text-[10px] text-xena-muted">{u.role}</span>
+              <button onClick={() => removeSystemUser(u.id)} className="text-xena-danger p-1"><Trash2 size={12} /></button>
+            </div>
+          ))}
+        </div>
+        
+        {/* Yeni Sistem Kullanicisi Ekle */}
+        <div className="space-y-2">
+          <input 
+            type="text" 
+            value={newUserName}
+            onChange={(e) => setNewUserName(e.target.value)}
+            placeholder="Bot adi (ornek: TurnuvaBot)"
+            className="w-full bg-xena-surface border border-white/10 rounded-xl px-3 py-2 text-sm text-white placeholder-xena-muted outline-none focus:border-xena-primary"
+          />
+          <div className="flex gap-2">
+            <select 
+              value={newUserRole}
+              onChange={(e) => setNewUserRole(e.target.value)}
+              className="bg-xena-surface border border-white/10 rounded-xl px-3 py-2 text-sm text-white outline-none focus:border-xena-primary"
+            >
+              <option value="bot">Bot</option>
+              <option value="system">Sistem</option>
+            </select>
+            <input 
+              type="color" 
+              value={newUserColor}
+              onChange={(e) => setNewUserColor(e.target.value)}
+              className="w-12 h-10 rounded-xl bg-transparent border border-white/10"
+            />
+            <button 
+              onClick={handleAddUser}
+              className="flex-1 bg-xena-primary/20 text-xena-primary py-2 rounded-xl font-bold text-sm"
+            >
+              <Plus size={14} className="inline" /> Ekle
+            </button>
+          </div>
+        </div>
+        
+        {/* Sistem Kullanicisi ile Mesaj Gonder */}
+        <div className="space-y-2 mt-3 pt-3 border-t border-white/[0.06]">
+          <select 
+            value={selectedUser}
+            onChange={(e) => setSelectedUser(e.target.value)}
+            className="w-full bg-xena-surface border border-white/10 rounded-xl px-3 py-2 text-sm text-white outline-none focus:border-xena-primary"
           >
-            <Save size={14} /> {saved ? 'Kaydedildi!' : 'Kaydet'}
+            <option value="">Kullanici sec...</option>
+            {systemUsers.map(u => (
+              <option key={u.id} value={u.id}>{u.name}</option>
+            ))}
+          </select>
+          <input 
+            type="text" 
+            value={systemMessage}
+            onChange={(e) => setSystemMessage(e.target.value)}
+            placeholder="Mesaj yaz..."
+            className="w-full bg-xena-surface border border-white/10 rounded-xl px-3 py-2 text-sm text-white placeholder-xena-muted outline-none focus:border-xena-primary"
+          />
+          <button 
+            onClick={handleSendAsSystem}
+            disabled={!selectedUser || !systemMessage.trim()}
+            className="w-full bg-xena-primary text-white py-2 rounded-xl font-bold text-sm flex items-center justify-center gap-2 disabled:opacity-50"
+          >
+            <Send size={14} /> Gonder
           </button>
+        </div>
+      </div>
+      
+      <div className="border-t border-white/[0.06] pt-4">
+        <h4 className="text-xs font-bold text-white mb-3">Otomatik Bot Mesajlari</h4>
+        
+        {/* Mevcut Bot Mesajlari */}
+        <div className="space-y-2 mb-3">
+          {botMessages.map(m => (
+            <div key={m.id} className="flex items-center gap-2 glass rounded-lg p-2">
+              <button 
+                onClick={() => toggleBotMessage(m.id)}
+                className={`w-8 h-5 rounded-full relative transition-colors ${m.enabled ? 'bg-xena-primary' : 'bg-xena-surface'}`}
+              >
+                <div className={`absolute top-0.5 w-4 h-4 rounded-full bg-white transition-all ${m.enabled ? 'left-3.5' : 'left-0.5'}`} />
+              </button>
+              <span className={`text-sm flex-1 truncate ${m.enabled ? 'text-white' : 'text-xena-muted'}`}>{m.text}</span>
+              <span className="text-[10px] text-xena-muted">{m.delay}dk</span>
+              <button onClick={() => removeBotMessage(m.id)} className="text-xena-danger p-1"><Trash2 size={12} /></button>
+            </div>
+          ))}
+        </div>
+        
+        {/* Yeni Bot Mesaji Ekle */}
+        <div className="space-y-2">
+          <input 
+            type="text" 
+            value={newBotText}
+            onChange={(e) => setNewBotText(e.target.value)}
+            placeholder="Bot mesaji..."
+            className="w-full bg-xena-surface border border-white/10 rounded-xl px-3 py-2 text-sm text-white placeholder-xena-muted outline-none focus:border-xena-primary"
+          />
+          <div className="flex gap-2">
+            <input 
+              type="number" 
+              value={newBotDelay}
+              onChange={(e) => setNewBotDelay(parseInt(e.target.value) || 60)}
+              placeholder="Dakika"
+              className="w-24 bg-xena-surface border border-white/10 rounded-xl px-3 py-2 text-sm text-white outline-none focus:border-xena-primary"
+            />
+            <button 
+              onClick={handleAddBotMessage}
+              className="flex-1 bg-xena-primary/20 text-xena-primary py-2 rounded-xl font-bold text-sm"
+            >
+              <Plus size={14} className="inline" /> Ekle
+            </button>
+          </div>
         </div>
       </div>
       
