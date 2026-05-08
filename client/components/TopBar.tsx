@@ -28,7 +28,7 @@ export default function TopBar() {
   useEffect(() => {
     const interval = setInterval(() => {
       const drift = Math.floor((Math.random() - 0.5) * 30);
-      setOnlineCount((c) => Math.max(config.onlineRange.min, Math.min(config.onlineRange.max, c + drift)));
+      setOnlineCount((c) => Math.max(1200, Math.min(3500, c + drift)));
     }, 15000);
     return () => clearInterval(interval);
   }, []);

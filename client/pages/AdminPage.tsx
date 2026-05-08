@@ -5,10 +5,11 @@ import {
   ArrowLeft, Shield, Users, MessageSquare, Ticket, TrendingUp, Ban,
   Crown, Star, CheckCircle, XCircle, Plus, Trash2, Edit3, Save, X,
   Megaphone, ShoppingBag, Newspaper, Calendar, AlertTriangle, Eye, EyeOff, ChevronRight,
-  Send
+  Send, Settings, Gift, Clock
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useChat } from '../context/ChatContext';
+import { useWheel } from '../context/WheelContext';
 
 /* ========== Shared Types ========== */
 interface TickerItem { id: string; text: string; active: boolean; }
@@ -453,7 +454,7 @@ function MarketManager() {
 export default function AdminPage() {
   const { currentUser, isAdmin, isMod } = useAuth();
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<'overview' | 'content' | 'users'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'content' | 'users' | 'wheel'>('overview');
 
   if (!isMod && !isAdmin) {
     return (
@@ -502,6 +503,7 @@ export default function AdminPage() {
           { id: 'overview' as const, label: 'Genel Bakis', icon: TrendingUp },
           { id: 'content' as const, label: 'Icerik Yonetimi', icon: Edit3 },
           { id: 'users' as const, label: 'Kullanicilar', icon: Users },
+          { id: 'wheel' as const, label: 'Şans Çarkı', icon: Gift },
         ].map(tab => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
@@ -609,6 +611,13 @@ export default function AdminPage() {
                   </div>
                 ))}
               </div>
+            </Card>
+          </motion.div>
+        )}
+        {activeTab === 'wheel' && (
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-3">
+            <Card>
+              <WheelSettings />
             </Card>
           </motion.div>
         )}
@@ -820,3 +829,207 @@ function ChatSettings() {
     </div>
   );
 }
+
+
+function WheelSettings() {
+  const { rewards, addReward, removeReward, updateReward, setCooldown, config } = useWheel();
+  const [newLabel, setNewLabel] = useState('');
+  const [newValue, setNewValue] = useState(100);
+  const [newType, setNewType] = useState<'gold' | 'spin' | 'none'>('gold');
+  const [newColor, setNewColor] = useState('#FFD700');
+  const [newWeight, setNewWeight] = useState(10);
+  const [cooldownHours, setCooldownHours] = useState(config.cooldownMs / (60 * 60 * 1000));
+  const [editing, setEditing] = useState<string | null>(null);
+
+  const handleAdd = () => {
+    if (!newLabel.trim()) return;
+    addReward({
+      label: newLabel,
+      value: newValue,
+      type: newType,
+      color: newColor,
+      weight: newWeight
+    });
+    setNewLabel('');
+    setNewValue(100);
+    setNewWeight(10);
+  };
+
+  const handleCooldownSave = () => {
+    setCooldown(cooldownHours * 60 * 60 * 1000);
+    alert('Bekleme süresi kaydedildi!');
+  };
+
+  const typeColors = {
+    gold: '#FFD700',
+    spin: '#9147ff',
+    none: '#6b6b8a'
+  };
+
+  const typeLabels = {
+    gold: 'Altýn',
+    spin: 'Ekstra Çark',
+    none: 'Boþ'
+  };
+
+  return (
+    <div className='space-y-6'>
+      <h3 className='text-sm font-bold text-xena-muted uppercase tracking-wider'>Þans Çarký Yönetimi</h3>
+      
+      {/* Cooldown Settings */}
+      <div className='space-y-2'>
+        <label className='text-xs font-bold text-white flex items-center gap-2'>
+          <Clock size={14} /> Bekleme Süresi
+        </label>
+        <div className='flex gap-2'>
+          <input
+            type='number'
+            value={cooldownHours}
+            onChange={(e) => setCooldownHours(parseFloat(e.target.value) || 6)}
+            min={0.5}
+            max={72}
+            step={0.5}
+            className='flex-1 bg-xena-surface border border-white/10 rounded-xl px-3 py-2 text-sm text-white outline-none focus:border-xena-primary'
+          />
+          <span className='text-sm text-xena-muted py-2'>saat</span>
+          <button
+            onClick={handleCooldownSave}
+            className='bg-xena-primary text-white px-4 py-2 rounded-xl font-bold text-sm'
+          >
+            <Save size={14} />
+          </button>
+        </div>
+      </div>
+
+      <div className='border-t border-white/[0.06] pt-4'>
+        <h4 className='text-xs font-bold text-white mb-3 flex items-center gap-2'>
+          <Gift size={14} /> Ödüller ({rewards.length})
+        </h4>
+        
+        {/* Rewards List */}
+        <div className='space-y-2 mb-4 max-h-60 overflow-y-auto no-scrollbar'>
+          {rewards.map((r) => (
+            <div key={r.id} className='glass rounded-xl p-3'>
+              {editing === r.id ? (
+                <div className='space-y-2'>
+                  <input
+                    type='text'
+                    value={r.label}
+                    onChange={(e) => updateReward(r.id, { label: e.target.value })}
+                    className='w-full bg-xena-surface border border-white/10 rounded-lg px-2 py-1 text-sm text-white'
+                  />
+                  <div className='flex gap-2'>
+                    <input
+                      type='number'
+                      value={r.value}
+                      onChange={(e) => updateReward(r.id, { value: parseInt(e.target.value) || 0 })}
+                      className='w-20 bg-xena-surface border border-white/10 rounded-lg px-2 py-1 text-sm text-white'
+                    />
+                    <input
+                      type='number'
+                      value={r.weight}
+                      onChange={(e) => updateReward(r.id, { weight: parseInt(e.target.value) || 1 })}
+                      className='w-16 bg-xena-surface border border-white/10 rounded-lg px-2 py-1 text-sm text-white'
+                      placeholder='Þans %'
+                    />
+                    <input
+                      type='color'
+                      value={r.color}
+                      onChange={(e) => updateReward(r.id, { color: e.target.value })}
+                      className='w-10 h-8 rounded bg-transparent'
+                    />
+                    <button
+                      onClick={() => setEditing(null)}
+                      className='ml-auto text-xena-primary p-1'
+                    >
+                      <CheckCircle size={16} />
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className='flex items-center gap-3'>
+                  <div
+                    className='w-4 h-4 rounded-full'
+                    style={{ background: r.color }}
+                  />
+                  <div className='flex-1'>
+                    <div className='text-sm font-bold'>{r.label}</div>
+                    <div className='text-[10px] text-xena-muted'>
+                      {typeLabels[r.type]}  %{r.weight} þans
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setEditing(r.id)}
+                    className='text-xena-primary/60 hover:text-xena-primary p-1'
+                  >
+                    <Edit3 size={14} />
+                  </button>
+                  <button
+                    onClick={() => removeReward(r.id)}
+                    className='text-xena-danger/60 hover:text-xena-danger p-1'
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+
+        {/* Add New Reward */}
+        <div className='space-y-2 border-t border-white/[0.06] pt-4'>
+          <h5 className='text-xs font-bold text-xena-muted'>Yeni Ödül Ekle</h5>
+          <input
+            type='text'
+            value={newLabel}
+            onChange={(e) => setNewLabel(e.target.value)}
+            placeholder='Ödül adý (örn: 500 Altýn)'
+            className='w-full bg-xena-surface border border-white/10 rounded-xl px-3 py-2 text-sm text-white placeholder-xena-muted outline-none focus:border-xena-primary'
+          />
+          <div className='flex gap-2'>
+            <select
+              value={newType}
+              onChange={(e) => {
+                setNewType(e.target.value as 'gold' | 'spin' | 'none');
+                setNewColor(typeColors[e.target.value as 'gold' | 'spin' | 'none']);
+              }}
+              className='bg-xena-surface border border-white/10 rounded-xl px-3 py-2 text-sm text-white outline-none focus:border-xena-primary'
+            >
+              <option value='gold'>Altýn</option>
+              <option value='spin'>Ekstra Çark</option>
+              <option value='none'>Boþ</option>
+            </select>
+            <input
+              type='number'
+              value={newValue}
+              onChange={(e) => setNewValue(parseInt(e.target.value) || 0)}
+              placeholder='Deðer'
+              className='w-20 bg-xena-surface border border-white/10 rounded-xl px-3 py-2 text-sm text-white outline-none focus:border-xena-primary'
+            />
+            <input
+              type='number'
+              value={newWeight}
+              onChange={(e) => setNewWeight(parseInt(e.target.value) || 10)}
+              placeholder='Þans %'
+              className='w-20 bg-xena-surface border border-white/10 rounded-xl px-3 py-2 text-sm text-white outline-none focus:border-xena-primary'
+            />
+            <input
+              type='color'
+              value={newColor}
+              onChange={(e) => setNewColor(e.target.value)}
+              className='w-12 h-10 rounded-xl bg-transparent border border-white/10'
+            />
+          </div>
+          <button
+            onClick={handleAdd}
+            disabled={!newLabel.trim()}
+            className='w-full bg-xena-primary/20 text-xena-primary py-2 rounded-xl font-bold text-sm flex items-center justify-center gap-2 disabled:opacity-50'
+          >
+            <Plus size={14} /> Ekle
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+

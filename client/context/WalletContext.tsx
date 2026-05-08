@@ -14,6 +14,7 @@ export interface Wallet {
 interface WalletContextValue {
   wallets: Record<string, Wallet>;
   getWallet: (userId: string) => Wallet;
+  balance: (userId: string) => number;
   addCoins: (userId: string, amount: number, note?: string) => void;
   purchaseCoins: (userId: string, altinCost: number, coinsAmount: number, productName: string) => { success: boolean; error?: string };
   getLeaderboard: () => { userId: string; username: string; balance: number }[];
@@ -48,6 +49,10 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
     return wallets[userId] || DEFAULT_WALLET(userId);
   }, [wallets]);
 
+  const balance = useCallback((userId: string) => {
+    return wallets[userId]?.balance || 0;
+  }, [wallets]);
+
   const addCoins = useCallback((userId: string, amount: number, note?: string) => {
     setWallets((prev) => {
       const current = prev[userId] || DEFAULT_WALLET(userId);
@@ -80,7 +85,7 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
   }, [wallets]);
 
   return (
-    <WalletContext.Provider value={{ wallets, getWallet, addCoins, purchaseCoins, getLeaderboard }}>
+    <WalletContext.Provider value={{ wallets, getWallet, balance, addCoins, purchaseCoins, getLeaderboard }}>
       {children}
     </WalletContext.Provider>
   );
